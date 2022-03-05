@@ -1,12 +1,16 @@
 <template>
+  <canvas id="canvas"></canvas>
   hola que tal
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import {CPU} from './components/cpu.js'
 export default {
-  name: 'App'
+  name: 'App',
+
+  mounted() {
+    this.cpu = new CPU();
+  },
 }
 </script>
 

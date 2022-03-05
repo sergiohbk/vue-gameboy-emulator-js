@@ -1,13 +1,13 @@
 export class Registers{
     constructor(){
-        this.a = 0;
-        this.b = 0;
-        this.c = 0;
-        this.d = 0;
-        this.e = 0;
-        this.h = 0;
-        this.l = 0;
-        this.f = 0; //este registro es una flag, los 4 bits menos significativos no se usan
+        this.a = 0x00;
+        this.b = 0x00;
+        this.c = 0x00;
+        this.d = 0x00;
+        this.e = 0x00;
+        this.h = 0x00;
+        this.l = 0x00;
+        this.f = 0x00; //este registro es una flag, los 4 bits menos significativos no se usan
         //el bit 7 es el flag de zero
         //el bit 6 es el flag de subtraction
         //el bit 5 es el flag de half carry
