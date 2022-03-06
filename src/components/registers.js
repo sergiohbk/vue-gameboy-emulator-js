@@ -13,8 +13,21 @@ export class Registers{
         //el bit 5 es el flag de half carry
         //el bit 4 es el flag de carry
 
-        this.sp = -1;
+        this.sp = 0xFFFE; //stack pointer
         this.pc = 0x0100; // hay que ver cuantos bytes tiene
+
+        //port registers
+        this.p1 = 0;
+        this.sc = 0;
+        this.tima = 0;
+        this.tac = 0;
+        this.ie = 0;
+        this.lcdc = 0x83;
+        this.scy = 0;
+        this.scx = 0;
+        this.wy = 0;
+        this.w = 0;
+        this.lyc = 0;
     }
 
     //la cpu es capaz de escribir y leer 16 bits aunque sus registros son de 8 bits

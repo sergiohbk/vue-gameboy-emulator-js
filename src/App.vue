@@ -4,12 +4,13 @@
 </template>
 
 <script>
-import {CPU} from './components/cpu.js'
+import {GAMEBOY} from './components/gb.js'
 export default {
   name: 'App',
 
   mounted() {
-    this.cpu = new CPU();
+    this.gameboy = new GAMEBOY();
+    this.gameboy.cpu.loadBootRom();
   },
 }
 </script>

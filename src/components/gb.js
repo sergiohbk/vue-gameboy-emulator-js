@@ -1,4 +1,6 @@
-export class GB{
+import { CPU } from "./cpu";
+
+export class GAMEBOY{
     // especificaciones
     // cpu z80 (8080 like)
     // cpu freq 4,194,304 MHz
@@ -11,5 +13,6 @@ export class GB{
     // sincronizacion horizontal 9,198 Hz
 
     constructor(){
+        this.cpu = new CPU();
     }
 }
