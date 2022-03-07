@@ -1,12 +1,14 @@
 import { Display } from "./display";
 import { Bus } from "./bus";
 import { Registers } from "./registers";
+import { Cartridge } from "./cartridge";
 
 export class CPU{
     constructor(){
         this.registers = new Registers();
         this.display =  new Display();
         this.bus = new Bus();
+        this.cardridge;
     }
     async loadBootRom(){
         //añadimos a la memoria el bootrom de gameboy
@@ -24,5 +26,10 @@ export class CPU{
         const buffer = await rom.arrayBuffer();
         const rombuffer = new Uint8Array(buffer);
         console.log(rombuffer);
+        this.cardridge = new Cartridge(rombuffer);
+    }
+
+    async sleep(ms){
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
