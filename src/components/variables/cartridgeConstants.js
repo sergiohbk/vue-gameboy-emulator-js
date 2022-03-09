@@ -3,7 +3,7 @@ export const CARTRIDGE_TYPE = [
         key: 1,
         name: "ROM ONLY",
         description: "Only ROM",
-        mask: 0x00, 
+        mask: 0x00,
     },
     {
         key: 2,
@@ -19,7 +19,7 @@ export const CARTRIDGE_TYPE = [
     },
     {
         key: 4,
-        name: "ROM+MBC1+RAM+BATT",
+        name: "ROM+MBC1+RAM+BATTERY",
         description: "ROM + MBC1 + RAM + BATTERY",
         mask: 0x03,
     },

@@ -72,4 +72,32 @@ export class Registers{
     getZeroFlag(){
         return (this.f & 0x80) >> 7; //retornamos el bit 7
     }
+    setCarryFlag(value){
+        if(value){
+            this.f |= 0x10; //seteamos el bit 4
+        }else{
+            this.f &= 0xEF; //borramos el bit 4
+        }
+    }
+    setHalfCarryFlag(value){
+        if(value){
+            this.f |= 0x20; //seteamos el bit 5
+        }else{
+            this.f &= 0xDF; //borramos el bit 5
+        }
+    }
+    setSubtractionFlag(value){
+        if(value){
+            this.f |= 0x40; //seteamos el bit 6
+        }else{
+            this.f &= 0xBF; //borramos el bit 6
+        }
+    }
+    setZeroFlag(value){
+        if(value){
+            this.f |= 0x80; //seteamos el bit 7
+        }else{
+            this.f &= 0x7F; //borramos el bit 7
+        }
+    }
 }
