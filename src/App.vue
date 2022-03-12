@@ -24,7 +24,6 @@ export default {
     },
     async testEmulator(){
       this.gameboy = new GAMEBOY()
-      this.gameboy.cpu.loadBootRom()
       this.gameboy.cpu.sleep(200);
       this.gameboy.cpu.cpu_execute();
       this.gameboy.cpu.sleep(200);
