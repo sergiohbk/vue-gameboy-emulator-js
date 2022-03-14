@@ -1,3 +1,4 @@
+import { Cartridge } from "./cartridge";
 import { MEMORY_SIZE } from "./variables/busConstants";
 
 export class Bus{
@@ -16,16 +17,18 @@ export class Bus{
     // 0xFEA0 - 0xFEFF : No usable
     // 0xFF00 - 0xFF7F : I/O Registros
     // 0xFF80 - 0xFFFE : Zero Page
-    constructor(cardridge){
+    constructor(){
         this.memory = new Uint8Array(MEMORY_SIZE);
-        this.cartridge = cardridge;
+    }
+    setRom(rom){
+        this.cartridge = new Cartridge(rom);
     }
     write(address, value){
         //prueba de edicion de memoria
         if(address < 0x8000){
             console.log("esta escribiendo en rom bank 0");
             this.memory[address] = value;
-            this.cardridge.setRomData(address, value);
+            //this.cartridge.setRomData(address, value);
         }else if(address < 0xA000){
             console.log("esta escribiendo en char ram");
             this.memory[address] = value;

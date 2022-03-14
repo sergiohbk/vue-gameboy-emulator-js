@@ -24,10 +24,10 @@ export default {
     },
     async testEmulator(){
       this.gameboy = new GAMEBOY()
-      this.gameboy.cpu.sleep(200);
-      this.gameboy.cpu.cpu_execute();
-      this.gameboy.cpu.sleep(200);
       await this.gameboy.cpu.cpu_execute();
+      await this.gameboy.cpu.cpu_execute();
+      console.log(this.gameboy.cpu.bus.memory);
+      console.log(this.gameboy.cpu.registers.a);
     }
   },
 
