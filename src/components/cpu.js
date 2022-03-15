@@ -23,7 +23,6 @@ export class CPU{
     async cpu_execute(){
         //guarda el opcode en current opcode
         if(this.rom === null){
-            console.log("rom is null");
             await this.loadRom();
         }
         this.current_opcode = this.rom[this.registers.pc];
