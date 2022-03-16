@@ -197,33 +197,9 @@ export class CPU{
             name: "JR Z, n",
             opcode: 0x28,
             cycles: 12,
-            execute: function(){
-                //sin implementar
-            }
-        }
-        //CP n
-        //0xFE
-        this.instructions[0xFE] = {
-            name: "CP n",
-            opcode: 0xFE,
-            cycles: 8,
             execute: function(cpu){
-                let suma = cpu.registers.a - this.bus.read(cpu.registers.pc + 1);
-                //si la suma es menor que 0, se pone el bit de carry a 1
-                if(suma < 0){
-                    cpu.registers.setCarryFlag(1);
-                }
-                //si la suma es mayor que el registro A & 0xf se pone el bit de halfcarry a 1
-                if((cpu.registers.a & 0xF) > (suma & 0xF)){
-                    cpu.registers.setHalfCarry(1);
-                }
-                //cambiamos el bit de subtract a 1
-                cpu.registers.setSubtractFlag(1);
-                //si el valor de la suma es igual a 0, se pone el bit de zero a 1
-                if(suma == 0){
-                    cpu.registers.setZeroFlag(1);
-                }
-                cpu.registers.pc += 2;
+                //sin implementar
+                cpu.registers.pc += 1;
             }
         }
     }
