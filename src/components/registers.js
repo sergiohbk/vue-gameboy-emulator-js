@@ -15,10 +15,10 @@ export class Registers{
         this.subtraction = false;
         this.halfcarry = false;
         this.carry = false;
-
         this.sp = 0x0000; //stack pointer
         this.pc = 0x0000; // hay que ver cuantos bytes tiene
         this.setInitialValues();
+        this.stack = new Uint8Array();
         //port registers
         this.p1 = 0;
         this.sc = 0;
@@ -60,11 +60,14 @@ export class Registers{
         this.c = (value & 0x00FF); //guardamos los 8 bits menos significativos
     }
     getAF(){
-        return ((this.a << 8) | this.f); //retornamos los registros como una variable de 16 bits
+        return ((this.a << 8) | ((this.zero) ? 0x80 : 0 | (this.subtraction) ? 0x40 : 0 | (this.halfcarry) ? 0x20 : 0 | (this.carry) ? 0x10 : 0)); //retornamos los registros como una variable de 16 bits
     }
     setAF(value){
         this.a = (value >> 8); //guardamos los 8 bits mas significativos
-        this.f = (value & 0x00FF); //cambiar la escritura a solo flags
+        this.zero = ((value & 0x08) == 0x08); //guardamos el bit 7
+        this.subtraction = ((value & 0x04) == 0x04); //guardamos el bit 6
+        this.halfcarry = ((value & 0x02) == 0x02); //guardamos el bit 5
+        this.carry = ((value & 0x01) == 0x01); //guardamos el bit 4
     }
     getDE(){
         return ((this.d << 8) | this.e); //retornamos los registros como una variable de 16 bits
@@ -79,5 +82,25 @@ export class Registers{
     setHL(value){
         this.h = (value >> 8); //guardamos los 8 bits mas significativos
         this.l = (value & 0x00FF); //guardamos los 8 bits menos significativos
+    }
+    stackPush8(value, bus){
+        this.sp -= 1;
+        this.stack[this.sp] = value;
+        bus.write(this.sp, value);
+    }
+    stackPop8(bus){
+        this.stack[this.sp] = 0x00;
+        var value = bus.read(this.sp);
+        this.sp += 1;
+        return value;
+    }
+    stackPush16(value, bus){
+        this.stackPush8(value >> 8, bus);
+        this.stackPush8(value & 0x00FF, bus);
+    }
+    stackPop16(bus){
+        var value = this.stackPop8(bus);
+        value = value | (this.stackPop8(bus) << 8);
+        return value;
     }
 }

@@ -1,7 +1,7 @@
 <template>
   <canvas id="canvas"></canvas>
   hola que tal
-  <table class="content-table" v-if="false">
+  <table class="content-table">
     <thead>
       <tr>
         <th>Register</th>
@@ -11,7 +11,7 @@
     <tbody>
       <tr>
         <td>A</td>
-        <td>0x{{ running }}</td>
+        <td>0x{{ gameboy.cpu.registers.a.toString(16)}}</td>
       </tr>
       <tr>
         <td>B</td>
@@ -55,7 +55,7 @@
       </tr>
       <tr>
         <td>subtract</td>
-        <td>{{ subtraction() }}</td>
+        <td>{{ gameboy.cpu.registers.subtraction }}</td>
       </tr>
       <tr>
         <td>half carry</td>
@@ -69,10 +69,14 @@
 import {GAMEBOY} from './components/gb.js'
 export default {
   name: 'App',
-  data() {
+  setup() {
+    var gameboy = new GAMEBOY()
+    var running = false
+    var ticks = 0
     return {
-      running: false,
-      ticks: 0,
+      gameboy,
+      running,
+      ticks,
     }
   },
   methods: {
@@ -85,13 +89,7 @@ export default {
       }
     },
     async testEmulator(){
-      this.gameboy = new GAMEBOY()
       this.running = true
-      await this.gameboy.cpu.cpu_execute();
-      await this.gameboy.cpu.cpu_execute();
-      await this.gameboy.cpu.cpu_execute();
-      await this.gameboy.cpu.cpu_execute();
-      await this.gameboy.cpu.cpu_execute();
       await this.gameboy.cpu.cpu_execute();
       await this.gameboy.cpu.cpu_execute();
       await this.gameboy.cpu.cpu_execute();

@@ -5,6 +5,7 @@ import { loadInstructions } from "./instrucciones/loadInstructions";
 import { jumpinstructions } from "./instrucciones/jumpinstructions";
 import { incdecinstructions } from "./instrucciones/incdecinstructions";
 import { aluinstructions } from "./instrucciones/ALUinstructions";
+import { stackinstructions } from "./instrucciones/stackinstructions";
 
 export class CPU{
     constructor(){
@@ -13,6 +14,7 @@ export class CPU{
         this.current_opcode;
         this.instructions = [];
         this.pause = false;
+        this.ticks = 0;
         this.rom = null;
         this.bus = new Bus();
         this.defineInstructions();
@@ -64,6 +66,7 @@ export class CPU{
         jumpinstructions(this.instructions, this.bus);
         incdecinstructions(this.instructions, this.bus);
         aluinstructions(this.instructions, this.bus);
+        stackinstructions(this.instructions, this.bus);
         //NOP
         //0x00
         this.instructions[0x00] = {

@@ -2,14 +2,14 @@ import { DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_MULTIPLY } from "./variables/dis
 
 export class Display{
     constructor(){
-        this.screen = document.getElementById('canvas');
+        /*this.screen = document.getElementById('canvas');
         this.ctx = this.screen.getContext('2d');
         this.screen.width = DISPLAY_WIDTH * DISPLAY_MULTIPLY;
         this.screen.height = DISPLAY_HEIGHT * DISPLAY_MULTIPLY;
         this.screen.style.backgroundColor = '#000';
         this.screen.style.border = '3px solid #AAA';
         this.frameBuffer = [];
-        this.resetPixel();
+        this.resetPixel();*/
     }
 
     resetPixel(){
