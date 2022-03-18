@@ -172,4 +172,169 @@ export function stackinstructions(instruction, bus){
             cpu.ticks += 12;
         }
     }
+    //RST 00H
+    //0xC7
+    instruction[0xC7] = {
+        name: "RST 00H",
+        opcode: 0xC7,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x00;
+        }
+    }
+    //RST 10H
+    //0xD7
+    instruction[0xD7] = {
+        name: "RST 10H",
+        opcode: 0xD7,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x10;
+        }
+    }
+    //RST 20H
+    //0xE7
+    instruction[0xE7] = {
+        name: "RST 20H",
+        opcode: 0xE7,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x20;
+        }
+    }
+    //RST 30H
+    //0xF7
+    instruction[0xF7] = {
+        name: "RST 30H",
+        opcode: 0xF7,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x30;
+        }
+    }
+    //RST 08H
+    //0xCF
+    instruction[0xCF] = {
+        name: "RST 08H",
+        opcode: 0xCF,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x08;
+        }
+    }
+    //RST 18H
+    //0xDF
+    instruction[0xDF] = {
+        name: "RST 18H",
+        opcode: 0xDF,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x18;
+        }
+    }
+    //RST 28H
+    //0xEF
+    instruction[0xEF] = {
+        name: "RST 28H",
+        opcode: 0xEF,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x28;
+        }
+    }
+    //RST 38H
+    //0xFF
+    instruction[0xFF] = {
+        name: "RST 38H",
+        opcode: 0xFF,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.pc = 0x38;
+        }
+    }
+    //RET NZ
+    //0xC0
+    instruction[0xC0] = {
+        name: "RET NZ",
+        opcode: 0xC0,
+        cycles: 20,
+        execute: function(cpu){
+            if(!cpu.registers.zero)
+            {
+                cpu.registers.pc = cpu.registers.stackPop16(bus);
+                cpu.ticks += 8;
+            }
+        }
+    }
+    //RET NC
+    //0xD0
+    instruction[0xD0] = {
+        name: "RET NC",
+        opcode: 0xD0,
+        cycles: 20,
+        execute: function(cpu){
+            if(!cpu.registers.carry)
+            {
+                cpu.registers.pc = cpu.registers.stackPop16(bus);
+                cpu.ticks += 8;
+            }
+        }
+    }
+    //RET Z
+    //0xC8
+    instruction[0xC8] = {
+        name: "RET Z",
+        opcode: 0xC8,
+        cycles: 20,
+        execute: function(cpu){
+            if(cpu.registers.zero)
+            {
+                cpu.registers.pc = cpu.registers.stackPop16(bus);
+                cpu.ticks += 8;
+            }
+        }
+    }
+    //RET C
+    //0xD8
+    instruction[0xD8] = {
+        name: "RET C",
+        opcode: 0xD8,
+        cycles: 20,
+        execute: function(cpu){
+            if(cpu.registers.carry)
+            {
+                cpu.registers.pc = cpu.registers.stackPop16(bus);
+                cpu.ticks += 8;
+            }
+        }
+    }
+    //RET
+    //0xC9
+    instruction[0xC9] = {
+        name: "RET",
+        opcode: 0xC9,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.pc = cpu.registers.stackPop16(bus);
+        }
+    }
+    //RETI
+    //0xD9
+    instruction[0xD9] = {
+        name: "RETI",
+        opcode: 0xD9,
+        cycles: 16,
+        execute: function(cpu){
+            cpu.registers.pc = cpu.registers.stackPop16(bus);
+            cpu.registers.interruptsenabled = 1;
+        }
+    }
 }

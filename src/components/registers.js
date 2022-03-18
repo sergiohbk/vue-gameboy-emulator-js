@@ -19,18 +19,8 @@ export class Registers{
         this.pc = 0x0000; // hay que ver cuantos bytes tiene
         this.setInitialValues();
         this.stack = new Uint8Array();
-        //port registers
-        this.p1 = 0;
-        this.sc = 0;
-        this.tima = 0;
-        this.tac = 0;
-        this.ie = 0;
-        this.lcdc = 0x00;
-        this.scy = 0;
-        this.scx = 0;
-        this.wy = 0;
-        this.w = 0;
-        this.lyc = 0;
+        this.interrumptsenabled = 0;
+        this.halted = false;
     }
     
     setInitialValues(){

@@ -1391,4 +1391,24 @@ export function aluinstructions(instruction, bus){
             //cambiar flags
         }
     }
+    //ADD SP, n
+    //0xE8
+    instruction[0xE8] = {
+        name: "ADD SP, n",
+        opcode: 0xE8,
+        cycles: 16,
+        execute: function(cpu){
+            //ADD SP, n
+            let lectura = bus.read(cpu.registers.pc + 1);
+            let suma = cpu.registers.sp + lectura;
+            cpu.registers.zero = (suma == 0);
+            cpu.registers.subtraction = false;
+            cpu.registers.halfcarry = (cpu.registers.sp & 0xF) + (lectura & 0xF) > 0xF;
+            cpu.registers.carry = (suma > 0xFFFF);
+            cpu.registers.sp = suma & 0xFFFF;
+            cpu.registers.pc += 2;
+            //cambiar flags
+            //revisar la comprobacion de flags
+        }
+    }
 }

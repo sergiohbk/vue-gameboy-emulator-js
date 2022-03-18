@@ -9,9 +9,13 @@
       </tr>
     </thead>
     <tbody>
+      <tr style="display:none">
+        <td>update</td>
+        <td>{{update}}</td>
+      </tr>
       <tr>
         <td>A</td>
-        <td>0x{{ gameboy.cpu.registers.a.toString(16)}}</td>
+        <td>0x{{ gameboy.cpu.registers.a.toString(16) }}</td>
       </tr>
       <tr>
         <td>B</td>
@@ -63,9 +67,28 @@
       </tr>
     </tbody>
   </table>
+  <table class="content-table">
+    <thead>
+      <tr>
+        <th>Stack Position</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="display:none">
+        <td>update</td>
+        <td>{{update}}</td>
+      </tr>
+      <tr v-for="(value, index) in gameboy.cpu.registers.stack" v-bind:key="index">
+        <td>0x{{ index.toString(16) }}</td>
+        <td>0x{{ value.toString(16) }}</td>
+      </tr>
+    </tbody>
+  </table>
 </template>
 
 <script>
+import {ref} from 'vue'
 import {GAMEBOY} from './components/gb.js'
 export default {
   name: 'App',
@@ -73,10 +96,40 @@ export default {
     var gameboy = new GAMEBOY()
     var running = false
     var ticks = 0
+    var a = ref(gameboy.cpu.registers.a)
+    var b = ref(gameboy.cpu.registers.b)
+    var c = ref(gameboy.cpu.registers.c)
+    var d = ref(gameboy.cpu.registers.d)
+    var e = ref(gameboy.cpu.registers.e)
+    var h = ref(gameboy.cpu.registers.h)
+    var l = ref(gameboy.cpu.registers.l)
+    var sp = ref(gameboy.cpu.registers.sp)
+    var pc = ref(gameboy.cpu.registers.pc)
+    var carry = ref(gameboy.cpu.registers.carry)
+    var zero = ref(gameboy.cpu.registers.zero)
+    var subtraction = ref(gameboy.cpu.registers.subtraction)
+    var halfcarry = ref(gameboy.cpu.registers.halfcarry)
+    var update = ref(0)
+    var stack = ref(gameboy.cpu.registers.stack)
     return {
       gameboy,
       running,
       ticks,
+      update,
+      a,
+      b,
+      c,
+      d,
+      e,
+      h,
+      l,
+      sp,
+      pc,
+      carry,
+      zero,
+      subtraction,
+      halfcarry,
+      stack
     }
   },
   methods: {
@@ -90,16 +143,26 @@ export default {
     },
     async testEmulator(){
       this.running = true
+      this.updateReactive()
+      this.gameboy.cpu.display.createDisplay()
       await this.gameboy.cpu.cpu_execute();
       await this.gameboy.cpu.cpu_execute();
       await this.gameboy.cpu.cpu_execute();
     },
+    async updateReactive(){
+      while(this.running)
+      {  
+        this.update += 1
+        await this.gameboy.cpu.sleep(100)
+      }
+    }
   },
 
   mounted() {
     this.testEmulator()
   },
   computed:{
+
   }
 }
 </script>
@@ -141,7 +204,7 @@ export default {
   background-color: #f9f9f9;
 }
 .content-table tbody tr:last-of-type {
-  border-bottom: 2px solid #136d50;
+  border-bottom: 5px solid #6fd6ff;
 }
 
 </style>
