@@ -19,7 +19,9 @@ export class Bus{
     // 0xFF80 - 0xFFFE : Zero Page
     constructor(){
         this.memory = new Uint8Array(MEMORY_SIZE);
+        this.bootrom = new Uint8Array(0x100);
     }
+    
     setRom(rom){
         this.cartridge = new Cartridge(rom);
     }
@@ -85,5 +87,19 @@ export class Bus{
         }else{
             console.error("Error: address out of range");
         }
+    }
+    readTile(address){
+        if(address >= 0x8000 && address < 0x9FFF){
+            let returntile = [];
+            for(let i = 0; i < 16; i++){
+                returntile.push(this.memory[address + i]);
+            }
+            return returntile;
+        }else{
+            console.error("Error: address out of range");
+        }
+    }
+    writeTile(){
+
     }
 }

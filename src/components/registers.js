@@ -19,7 +19,6 @@ export class Registers{
         this.pc = 0x0000; // hay que ver cuantos bytes tiene
         this.setInitialValues();
         this.stack = new Uint8Array();
-        this.interrumptsenabled = 0;
         this.halted = false;
     }
     

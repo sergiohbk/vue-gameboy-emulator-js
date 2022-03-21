@@ -1,3 +1,5 @@
+import { setIME } from "../interrumpts";
+
 export function otherinstructions(instruction){
     //NOP
     //0x00
@@ -15,8 +17,13 @@ export function otherinstructions(instruction){
         name: "RLCA",
         opcode: 0x07,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            cpu.registers.carry = (cpu.registers.a == 0x7F);
+            cpu.registers.a = (cpu.registers.a << 1) | (cpu.registers.a >> 7);
+            cpu.registers.halfcarry = false;
+            cpu.registers.subtraction = false;
+            cpu.registers.zero = false;
+            cpu.registers.pc += 1;
         }
     };
     //RRCA
@@ -25,8 +32,13 @@ export function otherinstructions(instruction){
         name: "RRCA",
         opcode: 0x0F,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            cpu.registers.a = (cpu.registers.a >> 1) | (cpu.registers.a & 1) << 7;
+            cpu.registers.carry = (cpu.registers.a == 0x7F);
+            cpu.registers.halfcarry = false;
+            cpu.registers.subtraction = false;
+            cpu.registers.zero = false;
+            cpu.registers.pc += 1;
         }
     };
     //STOP
@@ -35,8 +47,9 @@ export function otherinstructions(instruction){
         name: "STOP",
         opcode: 0x10,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            cpu.registers.halted = true;
+            cpu.registers.pc += 1;
         }
     };
     //RLA
@@ -45,8 +58,14 @@ export function otherinstructions(instruction){
         name: "RLA",
         opcode: 0x17,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            var carry = (cpu.registers.carry) ? 1 : 0;
+            cpu.registers.carry = (cpu.registers.a > 0x7F);
+            cpu.registers.a = ((cpu.registers.a << 1 ) & 0xFF) | carry;
+            cpu.registers.halfcarry = false;
+            cpu.registers.subtraction = false;
+            cpu.registers.zero = false;
+            cpu.registers.pc += 1; 
         }
     };
     //RRA
@@ -55,8 +74,14 @@ export function otherinstructions(instruction){
         name: "RRA",
         opcode: 0x1F,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            var carry = (cpu.registers.carry) ? 1 : 0;
+            cpu.registers.carry = (cpu.registers.a > 0x7F);
+            cpu.registers.a = ((cpu.registers.a >> 1) & 0xFF) | carry;
+            cpu.registers.halfcarry = false;
+            cpu.registers.subtraction = false;
+            cpu.registers.zero = false;
+            cpu.registers.pc += 1; 
         }
     };
     //DAA
@@ -65,8 +90,30 @@ export function otherinstructions(instruction){
         name: "DAA",
         opcode: 0x27,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            var a = cpu.registers.a;
+            var halfcarry = cpu.registers.halfcarry;
+            var carry = cpu.registers.carry;
+            if(!cpu.registers.subtraction){
+                if(carry || a > 0x99){
+                    a += 0x60;
+                    cpu.registers.carry = true;
+                }
+                if(halfcarry || (a & 0x0F) > 0x09){
+                    a += 0x06;
+                }
+            }
+            else{
+                if(carry){
+                    a -= 0x60;
+                }
+                if(halfcarry){
+                    a -= 0x06;
+                }
+            }
+            cpu.registers.a = a;
+            cpu.registers.halfcarry = false;
+            cpu.registers.zero = (cpu.registers.a == 0);
         }
     };
     //CPL
@@ -75,8 +122,11 @@ export function otherinstructions(instruction){
         name: "CPL",
         opcode: 0x2F,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            //invertimos los bits de A
+            cpu.registers.a = ~cpu.registers.a;
+            cpu.registers.halfcarry = true;
+            cpu.registers.subtraction = true;
         }
     };
     //SCF
@@ -85,8 +135,10 @@ export function otherinstructions(instruction){
         name: "SCF",
         opcode: 0x37,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            cpu.registers.carry = true;
+            cpu.registers.halfcarry = false;
+            cpu.registers.subtraction = false;
         }
     };
     //CCF
@@ -95,8 +147,10 @@ export function otherinstructions(instruction){
         name: "CCF",
         opcode: 0x3F,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            cpu.registers.carry = !cpu.registers.carry;
+            cpu.registers.halfcarry = false;
+            cpu.registers.subtraction = false;
         }
     };
     //HALT
@@ -105,8 +159,9 @@ export function otherinstructions(instruction){
         name: "HALT",
         opcode: 0x76,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            cpu.registers.halted = true;
+            cpu.registers.pc += 1;
         }
     };
     //DI
@@ -115,8 +170,9 @@ export function otherinstructions(instruction){
         name: "DI",
         opcode: 0xF3,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            setIME(false);
+            cpu.registers.pc += 1;
         }
     };
     //EI
@@ -125,8 +181,10 @@ export function otherinstructions(instruction){
         name: "EI",
         opcode: 0xFB,
         cycles: 4,
-        execute: function(){
-            //sin implementar
+        execute: function(cpu){
+            setIME(true);
+            cpu.registers.pc += 1;
         }
     };
+    
 }

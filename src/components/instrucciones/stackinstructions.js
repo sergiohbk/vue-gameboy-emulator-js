@@ -1,3 +1,5 @@
+import { setIME } from "../interrumpts";
+
 export function stackinstructions(instruction, bus){
     //PUSH BC
     //0xC5
@@ -334,7 +336,7 @@ export function stackinstructions(instruction, bus){
         cycles: 16,
         execute: function(cpu){
             cpu.registers.pc = cpu.registers.stackPop16(bus);
-            cpu.registers.interruptsenabled = 1;
+            setIME(true);
         }
     }
 }

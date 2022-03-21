@@ -1,7 +1,7 @@
 <template>
   <canvas id="canvas"></canvas>
   hola que tal
-  <table class="content-table">
+  <table class="content-table" v-if="false">
     <thead>
       <tr>
         <th>Register</th>
@@ -9,65 +9,61 @@
       </tr>
     </thead>
     <tbody>
-      <tr style="display:none">
-        <td>update</td>
-        <td>{{update}}</td>
-      </tr>
       <tr>
         <td>A</td>
-        <td>0x{{ gameboy.cpu.registers.a.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>B</td>
-        <td>0x{{ gameboy.cpu.registers.b.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>C</td>
-        <td>0x{{ gameboy.cpu.registers.c.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>D</td>
-        <td>0x{{ gameboy.cpu.registers.d.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>E</td>
-        <td>0x{{ gameboy.cpu.registers.e.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>H</td>
-        <td>0x{{ gameboy.cpu.registers.h.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>L</td>
-        <td>0x{{ gameboy.cpu.registers.l.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>stack pointer</td>
-        <td>0x{{ gameboy.cpu.registers.sp.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>program counter</td>
-        <td>0x{{ gameboy.cpu.registers.pc.toString(16) }}</td>
+        <td>0x</td>
       </tr>
       <tr>
         <td>carry</td>
-        <td>{{ gameboy.cpu.registers.carry }}</td>
+        <td></td>
       </tr>
       <tr>
         <td>zero</td>
-        <td>{{ gameboy.cpu.registers.zero }}</td>
+        <td></td>
       </tr>
       <tr>
         <td>subtract</td>
-        <td>{{ gameboy.cpu.registers.subtraction }}</td>
+        <td></td>
       </tr>
       <tr>
         <td>half carry</td>
-        <td>{{ gameboy.cpu.registers.halfcarry }}</td>
+        <td></td>
       </tr>
     </tbody>
   </table>
-  <table class="content-table">
+  <table class="content-table" v-if="false">
     <thead>
       <tr>
         <th>Stack Position</th>
@@ -75,11 +71,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr style="display:none">
-        <td>update</td>
-        <td>{{update}}</td>
-      </tr>
-      <tr v-for="(value, index) in gameboy.cpu.registers.stack" v-bind:key="index">
+      <tr>
         <td>0x{{ index.toString(16) }}</td>
         <td>0x{{ value.toString(16) }}</td>
       </tr>
@@ -88,73 +80,43 @@
 </template>
 
 <script>
-import {ref} from 'vue'
 import {GAMEBOY} from './components/gb.js'
+import { IME } from './components/interrumpts.js'
 export default {
   name: 'App',
   setup() {
-    var gameboy = new GAMEBOY()
     var running = false
     var ticks = 0
-    var a = ref(gameboy.cpu.registers.a)
-    var b = ref(gameboy.cpu.registers.b)
-    var c = ref(gameboy.cpu.registers.c)
-    var d = ref(gameboy.cpu.registers.d)
-    var e = ref(gameboy.cpu.registers.e)
-    var h = ref(gameboy.cpu.registers.h)
-    var l = ref(gameboy.cpu.registers.l)
-    var sp = ref(gameboy.cpu.registers.sp)
-    var pc = ref(gameboy.cpu.registers.pc)
-    var carry = ref(gameboy.cpu.registers.carry)
-    var zero = ref(gameboy.cpu.registers.zero)
-    var subtraction = ref(gameboy.cpu.registers.subtraction)
-    var halfcarry = ref(gameboy.cpu.registers.halfcarry)
-    var update = ref(0)
-    var stack = ref(gameboy.cpu.registers.stack)
     return {
-      gameboy,
       running,
-      ticks,
-      update,
-      a,
-      b,
-      c,
-      d,
-      e,
-      h,
-      l,
-      sp,
-      pc,
-      carry,
-      zero,
-      subtraction,
-      halfcarry,
-      stack
+      ticks
     }
   },
   methods: {
     //funcion de ejecucion del loop del emulador
-    runGameBoy() { 
+    async runGameBoy() { 
       this.gameboy = new GAMEBOY()
       this.running = true
       while(this.running){
-        this.ticks++
+        if(!this.gameboy.cpu.registers.halted){
+          await this.gameboy.cpu.cpu_execute()
+          this.ticks++
+          await this.gameboy.cpu.interruptsCycle()
+        }else{
+          if(IME){
+            this.gameboy.cpu.registers.halted = false
+          }
+        }
+        //if interruptmasterenable desactiva IME y controla las interrupciones, luego quita el halted
+        //if IME es true interruptmasterenable es true
       }
     },
     async testEmulator(){
+      var gameboy = new GAMEBOY()
       this.running = true
-      this.updateReactive()
-      this.gameboy.cpu.display.createDisplay()
-      await this.gameboy.cpu.cpu_execute();
-      await this.gameboy.cpu.cpu_execute();
-      await this.gameboy.cpu.cpu_execute();
-    },
-    async updateReactive(){
-      while(this.running)
-      {  
-        this.update += 1
-        await this.gameboy.cpu.sleep(100)
-      }
+      await gameboy.cpu.cpu_execute();
+      await gameboy.cpu.cpu_execute();
+      await gameboy.cpu.cpu_execute();
     }
   },
 
