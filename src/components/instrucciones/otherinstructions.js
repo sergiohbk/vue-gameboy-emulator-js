@@ -18,13 +18,14 @@ export function otherinstructions(instruction){
         opcode: 0x07,
         cycles: 4,
         execute: function(cpu){
-            cpu.registers.carry = (cpu.registers.a == 0x7F);
-            cpu.registers.a = (cpu.registers.a << 1) | (cpu.registers.a >> 7);
+            cpu.registers.carry = (cpu.registers.a > 0x7F);
+            cpu.registers.a = (cpu.registers.a << 1) & 0xFF | cpu.registers.a >> 7;
             cpu.registers.halfcarry = false;
             cpu.registers.subtraction = false;
             cpu.registers.zero = false;
             cpu.registers.pc += 1;
         }
+        //corregida
     };
     //RRCA
     //0x0F
@@ -34,12 +35,13 @@ export function otherinstructions(instruction){
         cycles: 4,
         execute: function(cpu){
             cpu.registers.a = (cpu.registers.a >> 1) | (cpu.registers.a & 1) << 7;
-            cpu.registers.carry = (cpu.registers.a == 0x7F);
+            cpu.registers.carry = (cpu.registers.a > 0x7F);
             cpu.registers.halfcarry = false;
             cpu.registers.subtraction = false;
             cpu.registers.zero = false;
             cpu.registers.pc += 1;
         }
+        //corregida
     };
     //STOP
     //0x10
@@ -60,13 +62,14 @@ export function otherinstructions(instruction){
         cycles: 4,
         execute: function(cpu){
             var carry = (cpu.registers.carry) ? 1 : 0;
-            cpu.registers.carry = (cpu.registers.a > 0x7F);
+            cpu.registers.carry = (cpu.registers.carry > 0x7F);
             cpu.registers.a = ((cpu.registers.a << 1 ) & 0xFF) | carry;
             cpu.registers.halfcarry = false;
             cpu.registers.subtraction = false;
             cpu.registers.zero = false;
             cpu.registers.pc += 1; 
         }
+        //comprobada
     };
     //RRA
     //0x1F
@@ -75,14 +78,15 @@ export function otherinstructions(instruction){
         opcode: 0x1F,
         cycles: 4,
         execute: function(cpu){
-            var carry = (cpu.registers.carry) ? 1 : 0;
-            cpu.registers.carry = (cpu.registers.a > 0x7F);
-            cpu.registers.a = ((cpu.registers.a >> 1) & 0xFF) | carry;
+            var carry = (cpu.registers.carry) ? 0x80 : 0;
+            cpu.registers.carry = (cpu.registers.a & 1) == 1;
+            cpu.registers.a = ((cpu.registers.a >> 1)) | carry;
             cpu.registers.halfcarry = false;
             cpu.registers.subtraction = false;
             cpu.registers.zero = false;
             cpu.registers.pc += 1; 
         }
+        //corregida
     };
     //DAA
     //0x27
@@ -91,30 +95,27 @@ export function otherinstructions(instruction){
         opcode: 0x27,
         cycles: 4,
         execute: function(cpu){
-            var a = cpu.registers.a;
-            var halfcarry = cpu.registers.halfcarry;
-            var carry = cpu.registers.carry;
             if(!cpu.registers.subtraction){
-                if(carry || a > 0x99){
-                    a += 0x60;
+                if(cpu.registers.carry || cpu.registers.a > 0x99){
+                    cpu.registers.a = (cpu.registers.a + 0x60) & 0xFF;
                     cpu.registers.carry = true;
                 }
-                if(halfcarry || (a & 0x0F) > 0x09){
-                    a += 0x06;
+                if(cpu.registers.halfcarry || (cpu.registers.a & 0xF) > 0x9){
+                    cpu.registers.a = (cpu.registers.a + 0x06) & 0xFF;
+                    cpu.registers.halfcarry = false;
                 }
+            }else if(cpu.registers.carry && cpu.registers.halfcarry){
+                cpu.registers.a = (cpu.registers.a + 0x9A) & 0xFF;
+                cpu.registers.halfcarry = false;
+            }else if(cpu.registers.carry){
+                cpu.registers.a = (cpu.registers.a + 0xA0) & 0xFF;
+            }else if(cpu.registers.halfcarry){
+                cpu.registers.a = (cpu.registers.a + 0xFA) & 0xFF;
+                cpu.registers.halfcarry = false;
             }
-            else{
-                if(carry){
-                    a -= 0x60;
-                }
-                if(halfcarry){
-                    a -= 0x06;
-                }
-            }
-            cpu.registers.a = a;
-            cpu.registers.halfcarry = false;
             cpu.registers.zero = (cpu.registers.a == 0);
-        }
+            cpu.registers.pc += 1;
+        }//revisada
     };
     //CPL
     //0x2F
@@ -124,9 +125,10 @@ export function otherinstructions(instruction){
         cycles: 4,
         execute: function(cpu){
             //invertimos los bits de A
-            cpu.registers.a = ~cpu.registers.a;
+            cpu.registers.a ^= 0xFF;
             cpu.registers.halfcarry = true;
             cpu.registers.subtraction = true;
+            cpu.registers.pc += 1;
         }
     };
     //SCF
@@ -139,6 +141,7 @@ export function otherinstructions(instruction){
             cpu.registers.carry = true;
             cpu.registers.halfcarry = false;
             cpu.registers.subtraction = false;
+            cpu.registers.pc += 1;
         }
     };
     //CCF
@@ -151,6 +154,7 @@ export function otherinstructions(instruction){
             cpu.registers.carry = !cpu.registers.carry;
             cpu.registers.halfcarry = false;
             cpu.registers.subtraction = false;
+            cpu.registers.pc += 1;
         }
     };
     //HALT

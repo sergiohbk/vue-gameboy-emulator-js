@@ -8,7 +8,7 @@ export const SPRITE_ATTRIBUTE_TABLE= 0xFE00;
 export const IO_REGISTERS = 0xFF00;
 export const HIGH_RAM = 0xFF80;
 export const INTERRUPT_ENABLE_REGISTER = 0xFFFF;
-export const MEMORY_SIZE = 0xFFFF;
+export const MEMORY_SIZE = 0x10000;
 //jump vectors
 export const RST_INSTRUCTIONS ={
     "RST_00": 0x0000,

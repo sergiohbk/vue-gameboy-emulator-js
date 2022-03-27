@@ -1,4 +1,5 @@
 import { Cartridge } from "./cartridge";
+import { setRunning } from "./variables/globalConstants";
 import { MEMORY_SIZE } from "./variables/busConstants";
 
 export class Bus{
@@ -26,66 +27,19 @@ export class Bus{
         this.cartridge = new Cartridge(rom);
     }
     write(address, value){
-        //prueba de edicion de memoria
-        if(address < 0x8000){
-            console.log("esta escribiendo en rom bank 0");
+        if(address < 0x10000){
             this.memory[address] = value;
-            //this.cartridge.setRomData(address, value);
-        }else if(address < 0xA000){
-            console.log("esta escribiendo en char ram");
-            this.memory[address] = value;
-        }else if(address < 0xC000){
-            console.log("esta escribiendo en rom bank 1");
-            this.memory[address] = value;
-            this.cartridge.setRomData(address, value);
-        }else if(address < 0xE000){
-            console.log("esta escribiendo en working ram");
-            this.memory[address] = value;
-        }else if(address < 0xFE00){
-            console.log("reservado");
-            //reservado
-        }else if(address < 0xFEA0){
-            console.log("esta escribiendo en oam");
-            this.memory[address] = value;
-        }else if(address < 0xFF00){
-            console.log("reservado");
-            //reservado
-        }else if(address < 0xFF80){
-            //no implementado
-        }else if(address < 0xFFFF){
-            //no implementado
         }else{
             console.error("Error: address out of range");
+            setRunning(false);
         }
     }
     read(address){
-        if(address < 0x8000){
-            console.log("esta leyendo desde rom bank 0");
+        if(address < 0x10000){
             return this.memory[address];
-        }else if(address < 0xA000){
-            console.log("esta leyendo desde char ram");
-            return this.memory[address];
-        }else if(address < 0xC000){
-            console.log("esta leyendo desde rom bank 1");
-            return this.memory[address];
-        }else if(address < 0xE000){
-            console.log("esta leyendo desde working ram");
-            return this.memory[address];
-        }else if(address < 0xFE00){
-            console.log("reservado");
-            //reservado
-        }else if(address < 0xFEA0){
-            console.log("esta leyendo desde oam");
-            return this.memory[address];
-        }else if(address < 0xFF00){
-            console.log("reservado");
-            //reservado
-        }else if(address < 0xFF80){
-            //no implementado
-        }else if(address < 0xFFFF){
-            //no implementado
         }else{
             console.error("Error: address out of range");
+            setRunning(false);
         }
     }
     readTile(address){

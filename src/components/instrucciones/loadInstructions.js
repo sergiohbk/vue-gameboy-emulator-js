@@ -18,7 +18,7 @@ export function loadInstructions(instruction, bus) {
         opcode: 0x02,
         cycles: 8,
         execute: function(cpu){
-            bus.write(cpu.registers.bc, cpu.registers.a);
+            bus.write(cpu.registers.getBC(), cpu.registers.a);
             cpu.registers.pc += 1; 
         }
     }
@@ -43,7 +43,7 @@ export function loadInstructions(instruction, bus) {
         execute: function(cpu){
             let temp_var = bus.read(cpu.registers.pc + 1) | (bus.read(cpu.registers.pc + 2) << 8);
             bus.write(temp_var, cpu.registers.sp & 0xFF);
-            bus.write(temp_var + 1, cpu.registers.sp >> 8);
+            bus.write(temp_var + 1 & 0xFFFF, cpu.registers.sp >> 8);
             cpu.registers.pc += 3;
         }
     }
@@ -54,7 +54,7 @@ export function loadInstructions(instruction, bus) {
         opcode: 0x0A,
         cycles: 8,
         execute: function(cpu){
-            cpu.registers.a = bus.read(cpu.registers.bc);
+            cpu.registers.a = bus.read(cpu.registers.getBC());
             cpu.registers.pc += 1;
         }
     }
@@ -177,7 +177,7 @@ export function loadInstructions(instruction, bus) {
             //guardamos el valor de la posicion HL en la variable a
             cpu.registers.a = bus.read(cpu.registers.getHL());
             //incrementamos la posicion HL
-            cpu.registers.setHL(cpu.registers.getHL() + 1);
+            cpu.registers.setHL((cpu.registers.getHL() + 1) & 0xFFFF);
             cpu.registers.pc += 1;
         }
     }
@@ -334,7 +334,6 @@ export function loadInstructions(instruction, bus) {
         execute: function(cpu){
             cpu.registers.b = bus.read(cpu.registers.getHL());
             cpu.registers.pc += 1;
-            //revisar
         }
     }
     //LD B, A
@@ -347,6 +346,7 @@ export function loadInstructions(instruction, bus) {
             cpu.registers.b = cpu.registers.a;
             cpu.registers.pc += 1;
         }
+        //revisada
     }
     //LD C, B
     //0x48
@@ -435,7 +435,7 @@ export function loadInstructions(instruction, bus) {
         execute: function(cpu){
             cpu.registers.c = cpu.registers.a;
             cpu.registers.pc += 1;
-        }
+        }//revisada
     }
     //LD D, B
     //0x50
@@ -963,7 +963,8 @@ export function loadInstructions(instruction, bus) {
         opcode: 0xE0,
         cycles: 12,
         execute: function(cpu){
-            bus.write(0xFF00 + cpu.registers.pc[1], cpu.registers.a);
+            let address = 0xFF00 + bus.read(cpu.registers.pc + 1);
+            bus.write(address, cpu.registers.a);
             cpu.registers.pc += 2;
         }
     }
@@ -985,7 +986,8 @@ export function loadInstructions(instruction, bus) {
         opcode: 0xEA,
         cycles: 16,
         execute: function(cpu){
-            bus.write(cpu.registers.pc[1] | (cpu.registers.pc[2] << 8), cpu.registers.a);
+            let address = bus.read(cpu.registers.pc + 1) | (bus.read(cpu.registers.pc + 2) << 8);
+            bus.write(address, cpu.registers.a);
             cpu.registers.pc += 3;
         }
     }
@@ -996,7 +998,8 @@ export function loadInstructions(instruction, bus) {
         opcode: 0xF0,
         cycles: 12,
         execute: function(cpu){
-            cpu.registers.a = bus.read(0xFF00 + cpu.registers.pc[1]);
+            let address = 0xFF00 + bus.read(cpu.registers.pc + 1);
+            cpu.registers.a = bus.read(address);
             cpu.registers.pc += 2;
         }
     }
@@ -1011,6 +1014,35 @@ export function loadInstructions(instruction, bus) {
             cpu.registers.pc += 1;
         }
     }
+    //LD HL,SP+n
+    //0xF8
+    instruction[0xF8] = {
+        name: "LD HL, SP+n",
+        opcode: 0xF8,
+        cycles: 12,
+        execute: function(cpu){
+            let tempvar = (bus.read(cpu.registers.pc + 1)<<24)>>24;
+            cpu.registers.setHL(cpu.registers.sp + tempvar) & 0xFFFF;
+            tempvar = cpu.registers.sp ^ tempvar ^ cpu.registers.getHL();
+            cpu.registers.carry = (tempvar & 0x100) == 0x100;
+            cpu.registers.halfCarry = (tempvar & 0x10) == 0x10;
+            cpu.registers.zero = false;
+            cpu.registers.subtraction = false;
+            cpu.registers.pc += 2;
+        }
+        //revisada
+    }
+    //LD SP, HL
+    //0xF9
+    instruction[0xF9] = {
+        name: "LD SP, HL",
+        opcode: 0xF9,
+        cycles: 8,
+        execute: function(cpu){
+            cpu.registers.sp = cpu.registers.getHL();
+            cpu.registers.pc += 1;
+        }
+    }
     //LD A, (nn)
     //0xFA
     instruction[0xFA] = {
@@ -1018,7 +1050,8 @@ export function loadInstructions(instruction, bus) {
         opcode: 0xFA,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.a = bus.read(cpu.registers.pc[1] | (cpu.registers.pc[2] << 8));
+            let address = bus.read(cpu.registers.pc + 1) | (bus.read(cpu.registers.pc + 2) << 8);
+            cpu.registers.a = bus.read(address);
             cpu.registers.pc += 3;
         }
     }

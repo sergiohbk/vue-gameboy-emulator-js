@@ -41,7 +41,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xF5,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.getAF(), bus);
+            cpu.registers.stackPush16(cpu.registers.getAF() & 0xFFF0, bus);
             cpu.registers.pc += 1;
         }
     }
@@ -85,9 +85,10 @@ export function stackinstructions(instruction, bus){
         opcode: 0xF1,
         cycles: 12,
         execute: function(cpu){
-            cpu.registers.setAF(cpu.registers.stackPop16(bus));
+            cpu.registers.setAF(cpu.registers.stackPop16(bus) & 0xFFF0);
             cpu.registers.pc += 1;
         }
+        //revisada
     }
     //CALL NZ,nn
     //0xC4
@@ -99,9 +100,10 @@ export function stackinstructions(instruction, bus){
             if(!cpu.registers.zero)
             {   
                 let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
-                cpu.registers.stackPush16(cpu.registers.pc + 3, bus);
+                cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
+                cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -117,9 +119,10 @@ export function stackinstructions(instruction, bus){
             if(!cpu.registers.carry)
             {   
                 let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
-                cpu.registers.stackPush16(cpu.registers.pc + 3, bus);
+                cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
+                cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -135,9 +138,10 @@ export function stackinstructions(instruction, bus){
             if(cpu.registers.zero)
             {   
                 let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
-                cpu.registers.stackPush16(cpu.registers.pc + 3, bus);
+                cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
+                cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -153,9 +157,10 @@ export function stackinstructions(instruction, bus){
             if(cpu.registers.carry)
             {   
                 let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
-                cpu.registers.stackPush16(cpu.registers.pc + 3, bus);
+                cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
+                cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -169,9 +174,10 @@ export function stackinstructions(instruction, bus){
         cycles: 24,
         execute: function(cpu){
             let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
-            cpu.registers.stackPush16(cpu.registers.pc + 3, bus);
+            cpu.registers.pc = (cpu.registers.pc + 3) & 0xFFFF;
+            cpu.registers.stackPush16(cpu.registers.pc,bus);
             cpu.registers.pc = address;
-            cpu.ticks += 12;
+            cpu.cpu_cycles += 12;
         }
     }
     //RST 00H
@@ -272,7 +278,9 @@ export function stackinstructions(instruction, bus){
             if(!cpu.registers.zero)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.ticks += 8;
+                cpu.cpu_cycles += 8;
+            }else{
+                cpu.registers.pc += 1;
             }
         }
     }
@@ -286,7 +294,9 @@ export function stackinstructions(instruction, bus){
             if(!cpu.registers.carry)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.ticks += 8;
+                cpu.cpu_cycles += 8;
+            }else{
+                cpu.registers.pc += 1;
             }
         }
     }
@@ -300,7 +310,9 @@ export function stackinstructions(instruction, bus){
             if(cpu.registers.zero)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.ticks += 8;
+                cpu.cpu_cycles += 8;
+            }else{
+                cpu.registers.pc += 1;
             }
         }
     }
@@ -314,7 +326,9 @@ export function stackinstructions(instruction, bus){
             if(cpu.registers.carry)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.ticks += 8;
+                cpu.cpu_cycles += 8;
+            }else{
+                cpu.registers.pc += 1;
             }
         }
     }
@@ -326,6 +340,7 @@ export function stackinstructions(instruction, bus){
         cycles: 16,
         execute: function(cpu){
             cpu.registers.pc = cpu.registers.stackPop16(bus);
+            console.log(cpu.registers.pc.toString(16) + " " + cpu.registers.sp.toString(16));
         }
     }
     //RETI

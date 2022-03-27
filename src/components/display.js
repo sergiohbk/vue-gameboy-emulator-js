@@ -3,14 +3,12 @@ import { DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_MULTIPLY } from "./variables/dis
 export class Display{
     constructor(bus){
         this.bus = bus;
-        console.log(this.bus);
         this.createDisplay();
         this.tileset = new Array();
         this.bytehigh = 0;
         this.bytelow = 0;
         this.bytesTile = new Array();
         this.inicialiceGraphics();
-        console.log(this.tileset);
     }
     createDisplay(){
         this.screen = document.getElementById('canvas');
@@ -49,7 +47,6 @@ export class Display{
                 pixelrow.push(pixel);
             }
             tile.push(pixelrow);
-            console.log(tile);
         }
         return tile;
     }

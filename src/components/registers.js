@@ -18,7 +18,7 @@ export class Registers{
         this.sp = 0x0000; //stack pointer
         this.pc = 0x0000; // hay que ver cuantos bytes tiene
         this.setInitialValues();
-        this.stack = new Uint8Array();
+        this.stack = [];
         this.halted = false;
     }
     
@@ -31,7 +31,7 @@ export class Registers{
         this.e = 0xD8;
         this.h = 0x01;
         this.l = 0x4D;
-        this.sp = 0xFFFE;
+        this.sp = 0xFFFF;
         this.pc = 0x0100;
         this.carry = true;
         this.zero = true;
@@ -49,14 +49,15 @@ export class Registers{
         this.c = (value & 0x00FF); //guardamos los 8 bits menos significativos
     }
     getAF(){
-        return ((this.a << 8) | ((this.zero) ? 0x80 : 0 | (this.subtraction) ? 0x40 : 0 | (this.halfcarry) ? 0x20 : 0 | (this.carry) ? 0x10 : 0)); //retornamos los registros como una variable de 16 bits
+        return ((this.a << 8) | ((this.zero) ? 0x80 : 0) | ((this.subtraction) ? 0x40 : 0) | ((this.halfcarry) ? 0x20 : 0) | ((this.carry) ? 0x10 : 0)); //retornamos los registros como una variable de 16 bits
     }
     setAF(value){
         this.a = (value >> 8); //guardamos los 8 bits mas significativos
-        this.zero = ((value & 0x08) == 0x08); //guardamos el bit 7
-        this.subtraction = ((value & 0x04) == 0x04); //guardamos el bit 6
-        this.halfcarry = ((value & 0x02) == 0x02); //guardamos el bit 5
-        this.carry = ((value & 0x01) == 0x01); //guardamos el bit 4
+        let val = value & 0x00FF; //guardamos los 8 bits menos significativos
+        this.zero = (val > 0x7F); //guardamos el bit 7
+        this.subtraction = ((val & 0x40) == 0x40); //guardamos el bit 6
+        this.halfcarry = ((val & 0x20) == 0x20); //guardamos el bit 5
+        this.carry = ((val & 0x10) == 0x10); //guardamos el bit 4
     }
     getDE(){
         return ((this.d << 8) | this.e); //retornamos los registros como una variable de 16 bits
@@ -73,23 +74,23 @@ export class Registers{
         this.l = (value & 0x00FF); //guardamos los 8 bits menos significativos
     }
     stackPush8(value, bus){
-        this.sp -= 1;
-        this.stack[this.sp] = value;
+        this.sp -= 1 & 0xFFFF;
+        this.stack.push(value) 
         bus.write(this.sp, value);
     }
     stackPop8(bus){
-        this.stack[this.sp] = 0x00;
+        this.stack.pop();
         var value = bus.read(this.sp);
-        this.sp += 1;
-        return value;
+        this.sp += 1 & 0xFFFF;
+        return value & 0xFF;
     }
     stackPush16(value, bus){
-        this.stackPush8(value >> 8, bus);
-        this.stackPush8(value & 0x00FF, bus);
+        this.stackPush8((value >> 8) & 0xFF, bus);
+        this.stackPush8(value & 0xFF, bus);
     }
     stackPop16(bus){
         var value = this.stackPop8(bus);
         value = value | (this.stackPop8(bus) << 8);
-        return value;
+        return value & 0xFFFF;
     }
 }

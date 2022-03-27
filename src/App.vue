@@ -77,55 +77,80 @@
       </tr>
     </tbody>
   </table>
+  <button @click="hola">cargar</button>
+  <button @click="hola1">ejecutar</button>
+  <button @click="hola2">parar</button>
 </template>
 
 <script>
 import {GAMEBOY} from './components/gb.js'
-import { IME } from './components/interrumpts.js'
+import { clocksperfps } from './components/variables/globalConstants.js'
 export default {
   name: 'App',
   setup() {
     var running = false
     var ticks = 0
+    var cycles = 0
+    var lastTime = 0
+    var msperframe = 1000 / 60
     return {
-      running,
-      ticks
+      ticks,
+      cycles,
+      lastTime,
+      msperframe,
+      running
     }
   },
   methods: {
     //funcion de ejecucion del loop del emulador
-    async runGameBoy() { 
-      this.gameboy = new GAMEBOY()
+    runGameBoy() { 
       this.running = true
-      while(this.running){
-        if(!this.gameboy.cpu.registers.halted){
-          await this.gameboy.cpu.cpu_execute()
-          this.ticks++
-          await this.gameboy.cpu.interruptsCycle()
-        }else{
-          if(IME){
-            this.gameboy.cpu.registers.halted = false
-          }
-        }
-        //if interruptmasterenable desactiva IME y controla las interrupciones, luego quita el halted
-        //if IME es true interruptmasterenable es true
-      }
+      this.run()
     },
-    async testEmulator(){
-      var gameboy = new GAMEBOY()
-      this.running = true
-      await gameboy.cpu.cpu_execute();
-      await gameboy.cpu.cpu_execute();
-      await gameboy.cpu.cpu_execute();
+    run(){
+      requestAnimationFrame(time => (this.runFrame(time)))
+    },
+    runFrame(currentTime){
+      if(!this.running) return;
+      if(this.gameboy.cpu.pause) return;
+
+      const delta = currentTime - this.lastTime
+      //console.log(this.gameboy.cpu.registers.pc.toString(16))
+      if(delta >= this.msperframe || this.lastTime)
+      {
+        this.fps = Math.round(1000 / delta)
+        this.lastTime = currentTime - (delta % this.msperframe)
+
+        while(this.cycles <= clocksperfps){
+          if(!this.gameboy.cpu.registers.halted)
+          {
+            this.gameboy.cpu.cpu_execute();
+          }else{
+            this.gameboy.cpu.cpu_execute();
+          }
+          this.gameboy.cpu.interruptsCycle();
+          this.gameboy.cpu.timerCycle();
+          this.cycles += this.gameboy.cpu.cpu_cycles;
+        }
+        this.cycles %= clocksperfps;
+      }
+      //console.log(this.gameboy.cpu.registers.stack)
+      requestAnimationFrame(time => (this.runFrame(time)))
+    },
+    hola(){
+      this.gameboy = new GAMEBOY()
+      this.gameboy.cpu.loadRom()
+    },
+    hola1(){
+      this.runGameBoy()
+    },
+    hola2(){
+      this.running = false
+      console.log(this.gameboy.cpu.test)
+      console.log(this.gameboy.cpu.registers.a.toString(16) + " " + this.gameboy.cpu.registers.b.toString(16) + " " + this.gameboy.cpu.registers.c.toString(16) + " " + this.gameboy.cpu.registers.d.toString(16) + " " + this.gameboy.cpu.registers.e.toString(16) + " " + this.gameboy.cpu.registers.h.toString(16) + " " + this.gameboy.cpu.registers.l.toString(16) + " " + this.gameboy.cpu.registers.sp.toString(16) + " " + this.gameboy.cpu.registers.pc.toString(16) + " " + this.gameboy.cpu.registers.carry + " " + this.gameboy.cpu.registers.zero + " " + this.gameboy.cpu.registers.subtraction + " " + this.gameboy.cpu.registers.halfcarry + " ")
     }
-  },
-
-  mounted() {
-    this.testEmulator()
-  },
-  computed:{
-
   }
+  
 }
 </script>
 

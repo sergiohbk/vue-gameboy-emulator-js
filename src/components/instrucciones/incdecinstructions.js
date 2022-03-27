@@ -23,9 +23,9 @@ export function incdecinstructions(instruction, bus){
             //si el valor de B es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = (cpu.registers.b == 0);
             //si el valor de B es igual a 0x10, se pone el bit de carry a 0
-            cpu.registers.halfcarry = (cpu.registers.b & 0x10) == 0x10;
+            cpu.registers.halfcarry = (cpu.registers.b & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
-            cpu.registers.setSubtractFlag();
+            cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
         }
     }
@@ -37,7 +37,7 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //decrementamos en 1 el valor de B
-            cpu.registers.b = cpu.registers.b - 1;
+            cpu.registers.b = cpu.registers.b - 1 & 0xFF;
             //si el valor de B es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = (cpu.registers.b == 0);
             //si el valor de B es igual a 0x0F, se pone el bit de halfcarry a 1
@@ -55,7 +55,7 @@ export function incdecinstructions(instruction, bus){
         cycles: 8,
         execute: function(cpu){
             //decrementamos en 1 el valor de BC
-            cpu.registers.setBC(cpu.registers.getBC() - 1);
+            cpu.registers.setBC(cpu.registers.getBC() - 1 & 0xFFFF);
             cpu.registers.pc += 1;
         }
     }
@@ -71,7 +71,7 @@ export function incdecinstructions(instruction, bus){
             //si el valor de C es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = (cpu.registers.c == 0);
             //si el valor de C es igual a 0x10, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.c & 0x10) == 0x10;
+            cpu.registers.halfcarry = (cpu.registers.c & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
@@ -85,7 +85,7 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //decrementamos en 1 el valor de C
-            cpu.registers.c = cpu.registers.c - 1;
+            cpu.registers.c = cpu.registers.c - 1 & 0xFF;
             //si el valor de C es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = (cpu.registers.c == 0);
             //si el valor de C es igual a 0x0F, se pone el bit de halfcarry a 1
@@ -119,11 +119,11 @@ export function incdecinstructions(instruction, bus){
             //si el valor de D es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = (cpu.registers.d == 0);
             //si el valor de D es igual a 0x0F, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.d & 0x10) == 0x10;
+            cpu.registers.halfcarry = (cpu.registers.d & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
-        }
+        }//revisada
     }
     //DEC D
     //0x15
@@ -133,11 +133,11 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //decrementamos en 1 el valor de D
-            cpu.registers.d = cpu.registers.d - 1;
+            cpu.registers.d = cpu.registers.d - 1 & 0xFF;
             //si el valor de D es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = (cpu.registers.d == 0);
             //si el valor de D es igual a 0x0F, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.d & 0xF) == 0x0F;
+            cpu.registers.halfcarry = (cpu.registers.d & 0xF) == 0xF;
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
             cpu.registers.pc += 1;
@@ -151,7 +151,7 @@ export function incdecinstructions(instruction, bus){
         cycles: 8,
         execute: function(cpu){
             //decrementamos en 1 el valor de DE
-            cpu.registers.setDE(cpu.registers.getDE() - 1);
+            cpu.registers.setDE(cpu.registers.getDE() - 1 & 0xFFFF);
             cpu.registers.pc += 1;
         }
     }
@@ -163,11 +163,11 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //incrementamos en 1 el valor de E
-            cpu.registers.e = cpu.registers.e + 1 & 0xFF;
+            cpu.registers.e = (cpu.registers.e + 1) & 0xFF;
             //si el valor de E es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = cpu.registers.e == 0;
             //si el valor de E es igual a 0x10, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.e & 0x10) == 0x10;
+            cpu.registers.halfcarry = (cpu.registers.e & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
@@ -181,13 +181,13 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //decrementamos en 1 el valor de E
-            cpu.registers.e = cpu.registers.e - 1;
+            cpu.registers.e = cpu.registers.e - 1 & 0xFF;
             //si el valor de E es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = cpu.registers.e == 0;
             //si el valor de E es igual a 0x0F, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.e & 0xF) == 0x0F;
+            cpu.registers.halfcarry = (cpu.registers.e & 0xF) == 0xF;
             //cambiamos el bit de subtraction a 1
-            cpu.registers.subtraction = false;
+            cpu.registers.subtraction = true;
             cpu.registers.pc += 1;
         }
     }
@@ -215,7 +215,7 @@ export function incdecinstructions(instruction, bus){
             //si el valor de H es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = cpu.registers.h == 0;
             //si el valor de H es igual a 0x10, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.h & 0x10) == 0x10;
+            cpu.registers.halfcarry = (cpu.registers.h & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
@@ -229,15 +229,15 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //decrementamos en 1 el valor de H
-            cpu.registers.h = cpu.registers.h - 1;
+            cpu.registers.h = cpu.registers.h - 1 & 0xFF;
             //si el valor de H es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = cpu.registers.h == 0;
             //si el valor de H es igual a 0x0F, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.h & 0xF) == 0x0F;
+            cpu.registers.halfcarry = (cpu.registers.h & 0xF) == 0xF;
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
             cpu.registers.pc += 1;
-        }
+        }//revisada
     }
     //INC L
     //0x2C
@@ -251,7 +251,7 @@ export function incdecinstructions(instruction, bus){
             //si el valor de L es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = cpu.registers.l == 0;
             //si el valor de L es igual a 0x10, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.l & 0x10) == 0x10;
+            cpu.registers.halfcarry = (cpu.registers.l & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
@@ -265,11 +265,11 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //decrementamos en 1 el valor de L
-            cpu.registers.l = cpu.registers.l - 1;
+            cpu.registers.l = cpu.registers.l - 1 & 0xFF;
             //si el valor de L es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = cpu.registers.l == 0;
             //si el valor de L es igual a 0x0F, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.l & 0xF) == 0x0F;
+            cpu.registers.halfcarry = (cpu.registers.l & 0xF) == 0xF;
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
             cpu.registers.pc += 1;
@@ -300,7 +300,7 @@ export function incdecinstructions(instruction, bus){
             //comprobamos el bit de zero
             cpu.registers.zero = temp == 0;
             //comprobamos el bit de halfcarry
-            cpu.registers.halfcarry = (temp & 0x10) == 0x10;
+            cpu.registers.halfcarry = (temp & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
@@ -319,9 +319,21 @@ export function incdecinstructions(instruction, bus){
             //comprobamos el bit de zero
             cpu.registers.zero = temp == 0;
             //comprobamos el bit de halfcarry
-            cpu.registers.halfcarry = (temp & 0xF) == 0x0F;
+            cpu.registers.halfcarry = (temp & 0xF) == 0xF;
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
+            cpu.registers.pc += 1;
+        }
+    }
+    //DEC SP
+    //0x3B
+    instruction[0x3B] = {
+        name: "DEC SP",
+        opcode: 0x3B,
+        cycles: 8,
+        execute: function(cpu){
+            //decrementamos en 1 el valor de SP
+            cpu.registers.sp = (cpu.registers.sp - 1) & 0xFFFF;
             cpu.registers.pc += 1;
         }
     }
@@ -337,7 +349,7 @@ export function incdecinstructions(instruction, bus){
             //si el valor de A es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = cpu.registers.a == 0;
             //si el valor de A es igual a 0x10, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = (cpu.registers.a & 0x10) == 0x10;
+            cpu.registers.halfcarry = (cpu.registers.a & 0xF) == 0;
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
             cpu.registers.pc += 1;
@@ -351,11 +363,11 @@ export function incdecinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //decrementamos en 1 el valor de A
-            cpu.registers.a = cpu.registers.a - 1;
+            cpu.registers.a = (cpu.registers.a - 1) & 0xFF;
             //si el valor de A es igual a 0, se pone el bit de zero a 1
             cpu.registers.zero = (cpu.registers.a == 0);
             //si el valor de A es igual a 0x0F, se pone el bit de halfcarry a 1
-            cpu.registers.halfcarry = ((cpu.registers.a & 0x0F) == 0x0F);
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) == 0xF);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
             cpu.registers.pc += 1;

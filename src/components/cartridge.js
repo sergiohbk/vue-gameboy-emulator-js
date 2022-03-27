@@ -35,7 +35,6 @@ export class Cartridge{
     }
     getCartridgeType(rom){
         let cart = CARTRIDGE_TYPE.find(cart => (rom[0x147] & 0xFF) === cart.mask);
-        console.log(cart);
         return cart;
     }
     getTitle(rom){
@@ -54,7 +53,6 @@ export class Cartridge{
                 code += String.fromCharCode(rom[i]);
             }
         }
-        console.log(code);
         return code;
     }
     getVersion(rom){
@@ -71,7 +69,6 @@ export class Cartridge{
         else{
             flag = "juego que tiene las funciones de super gameboy deshabilitadas";
         }
-        console.log(flag);
         return flag;
     }
     getDestinationCode(rom){
