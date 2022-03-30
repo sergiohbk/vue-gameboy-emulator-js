@@ -31,7 +31,7 @@ export class Registers{
         this.e = 0xD8;
         this.h = 0x01;
         this.l = 0x4D;
-        this.sp = 0xFFFF;
+        this.sp = 0xFFFE;
         this.pc = 0x0100;
         this.carry = true;
         this.zero = true;
@@ -74,23 +74,26 @@ export class Registers{
         this.l = (value & 0x00FF); //guardamos los 8 bits menos significativos
     }
     stackPush8(value, bus){
-        this.sp -= 1 & 0xFFFF;
-        this.stack.push(value) 
+        this.sp = (this.sp - 1) & 0xFFFF;
+        //this.stack.push(value) 
         bus.write(this.sp, value);
     }
     stackPop8(bus){
-        this.stack.pop();
+        if(this.sp >= 0xFFFF){
+            throw new Error("Stack overflow");
+        }
+        //this.stack.pop();
         var value = bus.read(this.sp);
-        this.sp += 1 & 0xFFFF;
-        return value & 0xFF;
+        this.sp = (this.sp + 1) & 0xFFFF;
+        return (value & 0xFF);
     }
     stackPush16(value, bus){
-        this.stackPush8((value >> 8) & 0xFF, bus);
-        this.stackPush8(value & 0xFF, bus);
+        this.stackPush8(((value >> 8) & 0xFF), bus);
+        this.stackPush8((value & 0xFF), bus);
     }
     stackPop16(bus){
         var value = this.stackPop8(bus);
-        value = value | (this.stackPop8(bus) << 8);
-        return value & 0xFFFF;
+        value = (value | (this.stackPop8(bus) << 8));
+        return (value & 0xFFFF);
     }
 }

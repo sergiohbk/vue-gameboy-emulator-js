@@ -1,11 +1,7 @@
 .DS_Store
 node_modules
 /dist
-/public/POKEMON_BLUE.GB
-/public/gb_boot_rom.gb
-/public/01-special.gb
-/public/03-opsp,hl.gb
-/public/04-opr,imm.gb
+/public/roms
 
 
 # local env files

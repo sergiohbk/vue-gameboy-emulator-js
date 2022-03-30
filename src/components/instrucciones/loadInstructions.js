@@ -151,6 +151,8 @@ export function loadInstructions(instruction, bus) {
         execute: function(cpu){
             //escribe en memoria el registro A en la posicion HL
             bus.write(cpu.registers.getHL(), cpu.registers.a);
+            //incrementa el registro HL
+            cpu.registers.setHL((cpu.registers.getHL() + 1) & 0xFFFF);
             cpu.registers.pc += 1;
         }
     }
@@ -1022,10 +1024,10 @@ export function loadInstructions(instruction, bus) {
         cycles: 12,
         execute: function(cpu){
             let tempvar = (bus.read(cpu.registers.pc + 1)<<24)>>24;
-            cpu.registers.setHL(cpu.registers.sp + tempvar) & 0xFFFF;
+            cpu.registers.setHL((cpu.registers.sp + tempvar) & 0xFFFF);
             tempvar = cpu.registers.sp ^ tempvar ^ cpu.registers.getHL();
-            cpu.registers.carry = (tempvar & 0x100) == 0x100;
-            cpu.registers.halfCarry = (tempvar & 0x10) == 0x10;
+            cpu.registers.carry = ((tempvar & 0x100) === 0x100);
+            cpu.registers.halfcarry = ((tempvar & 0x10) === 0x10);
             cpu.registers.zero = false;
             cpu.registers.subtraction = false;
             cpu.registers.pc += 2;

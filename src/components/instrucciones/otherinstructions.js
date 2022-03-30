@@ -50,7 +50,7 @@ export function otherinstructions(instruction){
         opcode: 0x10,
         cycles: 4,
         execute: function(cpu){
-            cpu.registers.halted = true;
+            //handle stops
             cpu.registers.pc += 1;
         }
     };
@@ -61,8 +61,8 @@ export function otherinstructions(instruction){
         opcode: 0x17,
         cycles: 4,
         execute: function(cpu){
-            var carry = (cpu.registers.carry) ? 1 : 0;
-            cpu.registers.carry = (cpu.registers.carry > 0x7F);
+            let carry = ((cpu.registers.carry) ? 1 : 0);
+            cpu.registers.carry = (cpu.registers.a > 0x7F);
             cpu.registers.a = ((cpu.registers.a << 1 ) & 0xFF) | carry;
             cpu.registers.halfcarry = false;
             cpu.registers.subtraction = false;
@@ -95,7 +95,7 @@ export function otherinstructions(instruction){
         opcode: 0x27,
         cycles: 4,
         execute: function(cpu){
-            if(!cpu.registers.subtraction){
+           if(!cpu.registers.subtraction){
                 if(cpu.registers.carry || cpu.registers.a > 0x99){
                     cpu.registers.a = (cpu.registers.a + 0x60) & 0xFF;
                     cpu.registers.carry = true;

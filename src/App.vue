@@ -80,6 +80,8 @@
   <button @click="hola">cargar</button>
   <button @click="hola1">ejecutar</button>
   <button @click="hola2">parar</button>
+  <button @click="hola3">instructions</button>
+  <button @click="hola4">memory</button>
 </template>
 
 <script>
@@ -125,21 +127,22 @@ export default {
           if(!this.gameboy.cpu.registers.halted)
           {
             this.gameboy.cpu.cpu_execute();
-          }else{
-            this.gameboy.cpu.cpu_execute();
+            this.gameboy.cpu.interruptsCycle();
+          }else if(this.gameboy.cpu.haltHandler()){
+            this.gameboy.cpu.interruptsCycle();
           }
-          this.gameboy.cpu.interruptsCycle();
           this.gameboy.cpu.timerCycle();
           this.cycles += this.gameboy.cpu.cpu_cycles;
         }
         this.cycles %= clocksperfps;
       }
-      //console.log(this.gameboy.cpu.registers.stack)
+      //console.log(this.gameboy.cpu.registers.pc.toString(16))
       requestAnimationFrame(time => (this.runFrame(time)))
     },
     hola(){
       this.gameboy = new GAMEBOY()
       this.gameboy.cpu.loadRom()
+      //this.gameboy.cpu.teststack()
     },
     hola1(){
       this.runGameBoy()
@@ -147,7 +150,22 @@ export default {
     hola2(){
       this.running = false
       console.log(this.gameboy.cpu.test)
-      console.log(this.gameboy.cpu.registers.a.toString(16) + " " + this.gameboy.cpu.registers.b.toString(16) + " " + this.gameboy.cpu.registers.c.toString(16) + " " + this.gameboy.cpu.registers.d.toString(16) + " " + this.gameboy.cpu.registers.e.toString(16) + " " + this.gameboy.cpu.registers.h.toString(16) + " " + this.gameboy.cpu.registers.l.toString(16) + " " + this.gameboy.cpu.registers.sp.toString(16) + " " + this.gameboy.cpu.registers.pc.toString(16) + " " + this.gameboy.cpu.registers.carry + " " + this.gameboy.cpu.registers.zero + " " + this.gameboy.cpu.registers.subtraction + " " + this.gameboy.cpu.registers.halfcarry + " ")
+      console.log("breakpoint at " + this.gameboy.cpu.registers.pc.toString(16) + " la posicion de la stack esta en: " + this.gameboy.cpu.registers.sp.toString(16)
+            + " registro HL: " + this.gameboy.cpu.registers.getHL().toString(16)
+            + " registro BC: " + this.gameboy.cpu.registers.getBC().toString(16)
+            + " registro DE: " + this.gameboy.cpu.registers.getDE().toString(16)
+            + " registro AF: " + this.gameboy.cpu.registers.getAF().toString(16)
+            + " zeroflag: " + this.gameboy.cpu.registers.zero
+            + " carryflag: " + this.gameboy.cpu.registers.carry
+            + " halfcarryflag: " + this.gameboy.cpu.registers.halfcarry
+            + " subflag: " + this.gameboy.cpu.registers.subtraction);
+    },
+    hola3(){
+      console.log(this.gameboy.cpu.instructions)
+      console.log(this.gameboy.cpu.cbinstructions)
+    },
+    hola4(){
+      console.log(this.gameboy.cpu.bus.memory)
     }
   }
   

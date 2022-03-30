@@ -247,10 +247,10 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //sumamos el valor de B a A + carry
-            let suma = cpu.registers.a + cpu.registers.b + (cpu.registers.carry) ? 1 : 0;
+            let suma = cpu.registers.a + cpu.registers.b + ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) + (cpu.registers.b & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) + (cpu.registers.b & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
             cpu.registers.a = suma & 0xFF;
@@ -267,13 +267,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //sumamos el valor de C a A + carry
-            let suma = cpu.registers.a + cpu.registers.c + (cpu.registers.carry) ? 1 : 0;
+            let suma = cpu.registers.a + cpu.registers.c + ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) + (cpu.registers.c & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) + (cpu.registers.c & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
-            cpu.registers.a = (cpu.registers.a + cpu.registers.c + (cpu.registers.carry) ? 1 : 0) & 0xFF;
+            cpu.registers.a = suma & 0xFF;
             cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
@@ -287,13 +287,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //sumamos el valor de D a A + carry
-            let suma = cpu.registers.a + cpu.registers.d + (cpu.registers.carry) ? 1 : 0;
+            let suma = cpu.registers.a + cpu.registers.d + ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) + (cpu.registers.d & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) + (cpu.registers.d & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
-            cpu.registers.a = (cpu.registers.a + cpu.registers.d + (cpu.registers.carry) ? 1 : 0) & 0xFF;
+            cpu.registers.a = suma & 0xFF;
             cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
@@ -307,13 +307,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //sumamos el valor de E a A + carry
-            let suma = cpu.registers.a + cpu.registers.e + (cpu.registers.carry) ? 1 : 0;
+            let suma = cpu.registers.a + cpu.registers.e + ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) + (cpu.registers.e & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) + (cpu.registers.e & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
-            cpu.registers.a = (cpu.registers.a + cpu.registers.e + (cpu.registers.carry) ? 1 : 0) & 0xFF;
+            cpu.registers.a = suma & 0xFF;
             cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
@@ -327,13 +327,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //sumamos el valor de H a A + carry
-            let suma = cpu.registers.a + cpu.registers.h + (cpu.registers.carry) ? 1 : 0;
+            let suma = cpu.registers.a + cpu.registers.h + ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) + (cpu.registers.h & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) + (cpu.registers.h & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
-            cpu.registers.a = (cpu.registers.a + cpu.registers.h + (cpu.registers.carry) ? 1 : 0) & 0xFF;
+            cpu.registers.a = suma & 0xFF;
             cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
@@ -347,13 +347,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //sumamos el valor de L a A + carry
-            let suma = cpu.registers.a + cpu.registers.l + (cpu.registers.carry) ? 1 : 0;
+            let suma = cpu.registers.a + cpu.registers.l + ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) + (cpu.registers.l & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) + (cpu.registers.l & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
-            cpu.registers.a = (cpu.registers.a + cpu.registers.l + (cpu.registers.carry) ? 1 : 0) & 0xFF;
+            cpu.registers.a = suma & 0xFF;
             cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
@@ -368,13 +368,13 @@ export function aluinstructions(instruction, bus){
         execute: function(cpu){
             let data = bus.read(cpu.registers.getHL())
             //sumamos el valor de (HL) a A + carry
-            let suma = cpu.registers.a + data + (cpu.registers.carry) ? 1 : 0;
+            let suma = cpu.registers.a + data + ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) + (data & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) + (data & 0xF) + ((cpu.registers.carry) ? 1 : 0) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
-            cpu.registers.a = cpu.registers.a + data + ((cpu.registers.carry) ? 1 : 0) & 0xFF;
+            cpu.registers.a = suma & 0xFF;
             cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
@@ -388,10 +388,10 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //sumamos el valor de A a A + carry
-            let suma = (cpu.registers.a << 1) | (cpu.registers.carry) ? 1 : 0;
+            let suma = (cpu.registers.a << 1) | ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 0
             cpu.registers.subtraction = false;
-            cpu.registers.halfcarry = ((cpu.registers.a << 1) & 0x1E) | ((cpu.registers.carry) ? 1 : 0) > 0xF;
+            cpu.registers.halfcarry = ((((cpu.registers.a << 1) & 0x1E) | ((cpu.registers.carry) ? 1 : 0)) > 0xF);
             //ponemos el carry si excede los 16 bits
             cpu.registers.carry = (suma > 0xFF);
             cpu.registers.a = suma & 0xFF;
@@ -560,13 +560,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //restamos el valor de B a A
-            let resta = cpu.registers.a - cpu.registers.b - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - cpu.registers.b - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (cpu.registers.b & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (cpu.registers.b & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }
@@ -579,13 +579,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //restamos el valor de C a A
-            let resta = cpu.registers.a - cpu.registers.c - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - cpu.registers.c - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (cpu.registers.c & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (cpu.registers.c & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }
@@ -598,13 +598,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //restamos el valor de D a A
-            let resta = cpu.registers.a - cpu.registers.d - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - cpu.registers.d - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (cpu.registers.d & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (cpu.registers.d & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }
@@ -617,13 +617,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //restamos el valor de E a A
-            let resta = cpu.registers.a - cpu.registers.e - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - cpu.registers.e - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (cpu.registers.e & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (cpu.registers.e & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }
@@ -636,13 +636,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //restamos el valor de H a A
-            let resta = cpu.registers.a - cpu.registers.h - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - cpu.registers.h - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (cpu.registers.h & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (cpu.registers.h & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }
@@ -655,13 +655,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //restamos el valor de L a A
-            let resta = cpu.registers.a - cpu.registers.l - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - cpu.registers.l - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (cpu.registers.l & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (cpu.registers.l & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }
@@ -674,13 +674,13 @@ export function aluinstructions(instruction, bus){
         cycles: 8,
         execute: function(cpu){
             //restamos el valor de (HL) a A
-            let resta = cpu.registers.a - bus.read(cpu.registers.getHL()) - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - bus.read(cpu.registers.getHL()) - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (bus.read(cpu.registers.getHL()) & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (bus.read(cpu.registers.getHL()) & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }
@@ -693,13 +693,13 @@ export function aluinstructions(instruction, bus){
         cycles: 4,
         execute: function(cpu){
             //restamos el valor de A a A
-            let resta = cpu.registers.a - cpu.registers.a - (cpu.registers.carry) ? 1 : 0;
+            let resta = cpu.registers.a - cpu.registers.a - ((cpu.registers.carry) ? 1 : 0);
             //cambiamos el bit de subtraction a 1
             cpu.registers.subtraction = true;
-            cpu.registers.halfcarry = (cpu.registers.a & 0xF) - (cpu.registers.a & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0;
+            cpu.registers.halfcarry = ((cpu.registers.a & 0xF) - (cpu.registers.a & 0xF) - ((cpu.registers.carry) ? 1 : 0) < 0);
             cpu.registers.carry = (resta < 0);
             cpu.registers.a = resta & 0xFF;
-            cpu.registers.zero = (resta == 0);
+            cpu.registers.zero = (cpu.registers.a == 0);
             cpu.registers.pc += 1;
             //cambiar flags
         }

@@ -99,8 +99,8 @@ export function stackinstructions(instruction, bus){
         execute: function(cpu){
             if(!cpu.registers.zero)
             {   
-                let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
-                cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
+                let address = (bus.read(cpu.registers.pc + 2) << 8) | (bus.read(cpu.registers.pc + 1));
+                cpu.registers.pc = (cpu.registers.pc + 3) & 0xFFFF;
                 cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
                 cpu.cpu_cycles += 12;
@@ -187,7 +187,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xC7,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x00;
         }
     }
@@ -198,7 +198,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xD7,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x10;
         }
     }
@@ -209,7 +209,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xE7,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x20;
         }
     }
@@ -220,7 +220,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xF7,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x30;
         }
     }
@@ -231,7 +231,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xCF,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x08;
         }
     }
@@ -242,7 +242,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xDF,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x18;
         }
     }
@@ -253,7 +253,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xEF,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x28;
         }
     }
@@ -264,7 +264,7 @@ export function stackinstructions(instruction, bus){
         opcode: 0xFF,
         cycles: 16,
         execute: function(cpu){
-            cpu.registers.stackPush16(cpu.registers.pc, bus);
+            cpu.registers.stackPush16(cpu.registers.pc + 1, bus);
             cpu.registers.pc = 0x38;
         }
     }
@@ -340,7 +340,6 @@ export function stackinstructions(instruction, bus){
         cycles: 16,
         execute: function(cpu){
             cpu.registers.pc = cpu.registers.stackPop16(bus);
-            console.log(cpu.registers.pc.toString(16) + " " + cpu.registers.sp.toString(16));
         }
     }
     //RETI

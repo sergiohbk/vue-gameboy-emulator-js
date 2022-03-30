@@ -239,6 +239,18 @@ export function incdecinstructions(instruction, bus){
             cpu.registers.pc += 1;
         }//revisada
     }
+    //DEC HL
+    //0x2B
+    instruction[0x2B] = {
+        name: "DEC HL",
+        opcode: 0x2B,
+        cycles: 8,
+        execute: function(cpu){
+            //decrementamos en 1 el valor de HL
+            cpu.registers.setHL((cpu.registers.getHL() - 1) & 0xFFFF);
+            cpu.registers.pc += 1;
+        }
+    }
     //INC L
     //0x2C
     instruction[0x2C] = {
