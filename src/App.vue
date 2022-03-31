@@ -128,8 +128,10 @@ export default {
           {
             this.gameboy.cpu.cpu_execute();
             this.gameboy.cpu.interruptsCycle();
-          }else if(this.gameboy.cpu.haltHandler()){
-            this.gameboy.cpu.interruptsCycle();
+          }else{
+            if(this.gameboy.cpu.haltHandler()){
+              this.gameboy.cpu.interruptsCycle();
+            }
           }
           this.gameboy.cpu.timerCycle();
           this.cycles += this.gameboy.cpu.cpu_cycles;

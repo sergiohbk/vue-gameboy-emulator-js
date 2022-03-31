@@ -95,7 +95,7 @@ export function stackinstructions(instruction, bus){
     instruction[0xC4] = {
         name: "CALL NZ,nn",
         opcode: 0xC4,
-        cycles: 24,
+        cycles: 12,
         execute: function(cpu){
             if(!cpu.registers.zero)
             {   
@@ -114,7 +114,7 @@ export function stackinstructions(instruction, bus){
     instruction[0xD4] = {
         name: "CALL NC,nn",
         opcode: 0xD4,
-        cycles: 24,
+        cycles: 12,
         execute: function(cpu){
             if(!cpu.registers.carry)
             {   
@@ -133,7 +133,7 @@ export function stackinstructions(instruction, bus){
     instruction[0xCC] = {
         name: "CALL Z,nn",
         opcode: 0xCC,
-        cycles: 24,
+        cycles: 12,
         execute: function(cpu){
             if(cpu.registers.zero)
             {   
@@ -152,7 +152,7 @@ export function stackinstructions(instruction, bus){
     instruction[0xDC] = {
         name: "CALL C,nn",
         opcode: 0xDC,
-        cycles: 24,
+        cycles: 12,
         execute: function(cpu){
             if(cpu.registers.carry)
             {   
@@ -177,7 +177,6 @@ export function stackinstructions(instruction, bus){
             cpu.registers.pc = (cpu.registers.pc + 3) & 0xFFFF;
             cpu.registers.stackPush16(cpu.registers.pc,bus);
             cpu.registers.pc = address;
-            cpu.cpu_cycles += 12;
         }
     }
     //RST 00H
@@ -273,12 +272,12 @@ export function stackinstructions(instruction, bus){
     instruction[0xC0] = {
         name: "RET NZ",
         opcode: 0xC0,
-        cycles: 20,
+        cycles: 8,
         execute: function(cpu){
             if(!cpu.registers.zero)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.cpu_cycles += 8;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 1;
             }
@@ -289,12 +288,12 @@ export function stackinstructions(instruction, bus){
     instruction[0xD0] = {
         name: "RET NC",
         opcode: 0xD0,
-        cycles: 20,
+        cycles: 8,
         execute: function(cpu){
             if(!cpu.registers.carry)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.cpu_cycles += 8;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 1;
             }
@@ -305,12 +304,12 @@ export function stackinstructions(instruction, bus){
     instruction[0xC8] = {
         name: "RET Z",
         opcode: 0xC8,
-        cycles: 20,
+        cycles: 8,
         execute: function(cpu){
             if(cpu.registers.zero)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.cpu_cycles += 8;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 1;
             }
@@ -321,12 +320,12 @@ export function stackinstructions(instruction, bus){
     instruction[0xD8] = {
         name: "RET C",
         opcode: 0xD8,
-        cycles: 20,
+        cycles: 8,
         execute: function(cpu){
             if(cpu.registers.carry)
             {
                 cpu.registers.pc = cpu.registers.stackPop16(bus);
-                cpu.cpu_cycles += 8;
+                cpu.cpu_cycles += 12;
             }else{
                 cpu.registers.pc += 1;
             }

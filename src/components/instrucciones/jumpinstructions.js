@@ -7,7 +7,7 @@ export function jumpinstructions(instruction, bus){
         execute: function(cpu){
             if(!cpu.registers.zero){
                 cpu.registers.pc = bus.read(cpu.registers.pc + 1) | (bus.read(cpu.registers.pc + 2) << 8);
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -43,7 +43,7 @@ export function jumpinstructions(instruction, bus){
         execute: function(cpu){
             if(!cpu.registers.carry){
                 cpu.registers.pc = bus.read(cpu.registers.pc + 1) | (bus.read(cpu.registers.pc + 2) << 8);
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -59,7 +59,7 @@ export function jumpinstructions(instruction, bus){
             if(cpu.registers.carry)
             {
                 cpu.registers.pc = bus.read(cpu.registers.pc + 1) | (bus.read(cpu.registers.pc + 2) << 8);
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -75,7 +75,7 @@ export function jumpinstructions(instruction, bus){
             if(cpu.registers.zero)
             {
                 cpu.registers.pc = bus.read(cpu.registers.pc + 1) | (bus.read(cpu.registers.pc + 2) << 8);
-                cpu.ticks += 12;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 3;
             }
@@ -90,7 +90,7 @@ export function jumpinstructions(instruction, bus){
         execute: function(cpu){
             if(!cpu.registers.zero){
                 cpu.registers.pc = (cpu.registers.pc + ((bus.read(cpu.registers.pc + 1) << 24) >> 24) + 2) & 0xFFFF;
-                //cpu.ticks += 8;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 2;
             }
@@ -106,7 +106,7 @@ export function jumpinstructions(instruction, bus){
         execute: function(cpu){
             if(cpu.registers.zero){
                 cpu.registers.pc = (cpu.registers.pc + ((bus.read(cpu.registers.pc + 1) << 24) >> 24) + 2) & 0xFFFF;
-                cpu.ticks += 8;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 2;
             }
@@ -121,7 +121,7 @@ export function jumpinstructions(instruction, bus){
         execute: function(cpu){
             if(!cpu.registers.carry){
                 cpu.registers.pc = (cpu.registers.pc + ((bus.read(cpu.registers.pc + 1) << 24) >> 24) + 2) & 0xFFFF;
-                cpu.ticks += 8;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 2;
             }
@@ -136,7 +136,7 @@ export function jumpinstructions(instruction, bus){
         execute: function(cpu){
             if(cpu.registers.carry){
                 cpu.registers.pc = (cpu.registers.pc + ((bus.read(cpu.registers.pc + 1) << 24) >> 24) + 2) & 0xFFFF;
-                cpu.ticks += 8;
+                cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 2;
             }
@@ -150,7 +150,6 @@ export function jumpinstructions(instruction, bus){
         cycles: 12,
         execute: function(cpu){
             cpu.registers.pc = (cpu.registers.pc + ((bus.read(cpu.registers.pc + 1) << 24) >> 24) + 2) & 0xFFFF;
-            cpu.ticks += 12;
         }
     }
 }

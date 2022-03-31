@@ -11,6 +11,7 @@ export function bitinstuctions(instruction, bus, cbinstructions){
             if(cbinstructions[opcode] == undefined){
                 throw new Error("Instruccion no implementada: " + opcode.toString(16) + " en " + cpu.registers.pc.toString(16));
             }
+            instruction[0xCB].cycles = cbinstructions[opcode].cycles;
             cbinstructions[opcode].execute(cpu);
         }
     };

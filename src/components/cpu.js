@@ -28,25 +28,50 @@ export class CPU{
         this.cpu_cycles = 0;
         //this.loadBootRom();
         this.test = "";
+        this.bus.write(DIV_pointer, 0xAC);
     }
 
     interruptsCycle(){
-        if(!IME) return;
         let interrupt_request = this.bus.read(IF_pointer);
-        let interrupt_enable = this.bus.read(masterInterruptPointer);
-        let interrupt = interrupt_request & interrupt_enable;
-        if(interrupt == 0) return;
-        
-        if(interrupt & 0x1)
+        //let interrupt_enable = this.bus.read(masterInterruptPointer);
+        if(interrupt_request == 0) return; 
+        let interrupt = interrupt_request;
+
+        if(interrupt & 0x1){
+            if(!IME && this.registers.halted){
+                this.registers.halted = false;
+            } 
+            if(!IME) return;
             this.interrupt_VBlank();
-        else if(interrupt & 0x2)
+        }
+        else if(interrupt & 0x2){
+            if(!IME && this.registers.halted){
+                this.registers.halted = false;
+            } 
+            if(!IME) return;
             this.interrupt_LCDSTAT();
-        else if(interrupt & 0x4)
+        }
+        else if(interrupt & 0x4){
+            if(!IME && this.registers.halted){
+                this.registers.halted = false;
+            } 
+            if(!IME) return;
             this.interrupt_Timer();
-        else if(interrupt & 0x8)
+        }
+        else if(interrupt & 0x8){
+            if(!IME && this.registers.halted){
+                this.registers.halted = false;
+            } 
+            if(!IME) return;
             this.interrupt_Serial();
-        else if(interrupt & 0x10)
+        }
+        else if(interrupt & 0x10){
+            if(!IME && this.registers.halted){
+                this.registers.halted = false;
+            } 
+            if(!IME) return;
             this.interrupt_Joypad();
+        }
     }
 
     cpu_execute(){
@@ -54,11 +79,14 @@ export class CPU{
         this.current_opcode = this.bus.memory[this.registers.pc];
         //mirar que instrucciones aumentan el program counter
         if(this.instructions[this.current_opcode] !== undefined){
-            this.cpu_cycles = this.instructions[this.current_opcode].cycles;
             //this.breakpoint(0x102, true);
             //this.breakpoint(0xDF7C, true);
+            this.cpu_cycles = this.instructions[this.current_opcode].cycles;
             this.breakpoint(0xC7F4, true);
             this.instructions[this.current_opcode].execute(this);
+            if(this.current_opcode == 0xCB){
+                this.cpu_cycles += this.instructions[this.current_opcode].cycles;
+            }
             this.updateTest();
             this.printTest();
             //console.log(this.registers.pc.toString(16) + " " + this.instructions[this.current_opcode].name + " " + this.cpu_cycles);
@@ -125,36 +153,36 @@ export class CPU{
     interrupt_VBlank(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.VBlank;
-        this.bus.write(IF_pointer, 0x00);
-        this.bus.write(masterInterruptPointer, 0x00);
+        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xFE);
+        this.bus.write(masterInterruptPointer, this.bus.read(masterInterruptPointer) & 0xFE);
         this.cpu_cycles += 20;
     }
     interrupt_LCDSTAT(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.LCDSTAT;
-        this.bus.write(IF_pointer, 0x00);
-        this.bus.write(masterInterruptPointer, 0x00);
+        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xFD);
+        this.bus.write(masterInterruptPointer, this.bus.read(masterInterruptPointer) & 0xFD);
         this.cpu_cycles += 20;
     }
     interrupt_Timer(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Timer;
-        this.bus.write(IF_pointer, 0x00);
-        this.bus.write(masterInterruptPointer, 0x00);
+        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xFB);
+        this.bus.write(masterInterruptPointer, this.bus.read(masterInterruptPointer) & 0xFB);
         this.cpu_cycles += 20;
     }
     interrupt_Serial(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Serial;
-        this.bus.write(IF_pointer, 0x00);
-        this.bus.write(masterInterruptPointer, 0x00);
+        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xF7);
+        this.bus.write(masterInterruptPointer, this.bus.read(masterInterruptPointer) & 0xF7);
         this.cpu_cycles += 20;
     }
     interrupt_Joypad(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Joypad;
-        this.bus.write(IF_pointer, 0x00);
-        this.bus.write(masterInterruptPointer, 0x00);
+        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xEF);
+        this.bus.write(masterInterruptPointer, this.bus.read(masterInterruptPointer) & 0xEF);
         this.cpu_cycles += 20;
     }
     timerCycle(){
@@ -219,16 +247,15 @@ export class CPU{
     }
     haltHandler(){
         if(IME){
-            return false;
-        }
-        else if(!IME && this.bus.read(IF_pointer) == 0x00 && this.bus.read(masterInterruptPointer) == 0x00){
-            this.registers.halted = false;
             return true;
         }
         else if(!IME && this.bus.read(IF_pointer) != 0x00 && this.bus.read(masterInterruptPointer) != 0x00){
             //halt bug (programar)
             this.registers.halted = false;
             return false;
+        }
+        else if(!IME){
+            return true;
         }
     }
 }
