@@ -46,6 +46,7 @@ export class Bus{
         if(address >= 0x8000 && address < 0x9FFF){
             let returntile = [];
             for(let i = 0; i < 16; i++){
+                //sacamos las 16 tiras de 8 bits, 8x8pixels
                 returntile.push(this.memory[address + i]);
             }
             return returntile;

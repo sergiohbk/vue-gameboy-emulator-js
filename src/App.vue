@@ -1,87 +1,96 @@
 <template>
-  <canvas id="canvas"></canvas>
-  hola que tal
-  <table class="content-table" v-if="false">
-    <thead>
-      <tr>
-        <th>Register</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>A</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>B</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>C</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>D</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>E</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>H</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>L</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>stack pointer</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>program counter</td>
-        <td>0x</td>
-      </tr>
-      <tr>
-        <td>carry</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>zero</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>subtract</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>half carry</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <table class="content-table" v-if="false">
-    <thead>
-      <tr>
-        <th>Stack Position</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>0x{{ index.toString(16) }}</td>
-        <td>0x{{ value.toString(16) }}</td>
-      </tr>
-    </tbody>
-  </table>
-  <button @click="hola">cargar</button>
-  <button @click="hola1">ejecutar</button>
-  <button @click="hola2">parar</button>
-  <button @click="hola3">instructions</button>
-  <button @click="hola4">memory</button>
+  <div class="background">
+    <div class="row">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="row">
+      <canvas id="debug"></canvas>
+    </div>
+    <div class="row">
+      hola que tal
+      <table class="content-table" v-if="false">
+        <thead>
+          <tr>
+            <th>Register</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>B</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>C</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>D</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>E</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>H</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>L</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>stack pointer</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>program counter</td>
+            <td>0x</td>
+          </tr>
+          <tr>
+            <td>carry</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>zero</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>subtract</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>half carry</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="content-table" v-if="false">
+        <thead>
+          <tr>
+            <th>Stack Position</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0x{{ index.toString(16) }}</td>
+            <td>0x{{ value.toString(16) }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <button @click="hola">cargar</button>
+      <button @click="hola1">ejecutar</button>
+      <button @click="hola2">parar</button>
+      <button @click="hola3">instructions</button>
+      <button @click="hola4">memory</button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -137,14 +146,15 @@ export default {
           this.cycles += this.gameboy.cpu.cpu_cycles;
         }
         this.cycles %= clocksperfps;
+        this.gameboy.gpu.tick();
       }
+      
       //console.log(this.gameboy.cpu.registers.pc.toString(16))
       requestAnimationFrame(time => (this.runFrame(time)))
     },
     hola(){
       this.gameboy = new GAMEBOY()
       this.gameboy.cpu.loadRom()
-      //this.gameboy.cpu.teststack()
     },
     hola1(){
       this.runGameBoy()
@@ -181,7 +191,23 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  background-color: #3F3F3F;
+}
+.background{
+  background-color: #3F3F3F;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+canvas{
+  margin: 1rem;
+}
+.row{
+  display: grid;
+  justify-content: center;
 }
 .content-table {
   border-collapse: collapse;

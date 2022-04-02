@@ -1,4 +1,5 @@
 import { CPU } from "./cpu";
+import { GPU } from "./gpu";
 
 export class GAMEBOY{
     // especificaciones
@@ -14,5 +15,6 @@ export class GAMEBOY{
 
     constructor(){
         this.cpu = new CPU();
+        this.gpu = new GPU(this.cpu.bus);
     }
 }
