@@ -69,14 +69,14 @@ export class CPU{
             //this.breakpoint(0x102, true);
             //this.breakpoint(0xDF7C, true);
             this.cpu_cycles = this.instructions[this.current_opcode].cycles;
-            this.breakpoint(0xC7F4, true);
+            this.breakpoint(0x00FF, true);
             this.instructions[this.current_opcode].execute(this);
             if(this.current_opcode == 0xCB){
                 this.cpu_cycles += this.instructions[this.current_opcode].cycles;
             }
             //this.updateTest();
             //this.printTest();
-            //console.log(this.registers.pc.toString(16) + " " + this.instructions[this.current_opcode].name + " " + this.cpu_cycles);
+            //console.log(this.instructions[this.current_opcode].name + " " + this.current_opcode);
         }else
         {
             console.error("instruccion desconocida o invalida con el opcode " + this.current_opcode + " en la posicion " + this.registers.pc.toString(16));
@@ -90,13 +90,12 @@ export class CPU{
         const bootRomBuffer = await bootRom.arrayBuffer();
         const bootRomArray = new Uint8Array(bootRomBuffer);
         //guardamos el boot rom en la memoria
-        this.bus.bootrom = bootRomArray;
-        //for(let i = 0; i < bootRomArray.length; i++){
-        //    this.bus.write(i, bootRomArray[i]);
-        //}
+        for(let i = 0; i < bootRomArray.length; i++){
+            this.bus.write(i, bootRomArray[i]);
+        }
     }
     async loadRom(){
-        const rom = await fetch('./roms/01-special.gb');
+        const rom = await fetch('./roms/POKEMON_BLUE.GB');
         const buffer = await rom.arrayBuffer();
         const rombuffer = new Uint8Array(buffer);
         this.rom = rombuffer;

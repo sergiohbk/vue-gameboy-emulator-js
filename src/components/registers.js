@@ -15,9 +15,12 @@ export class Registers{
         this.subtraction = false;
         this.halfcarry = false;
         this.carry = false;
+        this.bootstrap = true;
         this.sp = 0x0000; //stack pointer
         this.pc = 0x0000; // hay que ver cuantos bytes tiene
-        this.setInitialValues();
+        if(!this.bootstrap){
+            this.setInitialValues();
+        }
         this.stack = [];
         this.halted = false;
     }

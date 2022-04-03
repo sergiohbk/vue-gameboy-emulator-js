@@ -18,7 +18,7 @@ export class GPU{
         this.LCDC = 0;
         this.bytesTile = new Array();
         this.inicialiceGraphics();
-        this.backgroundloading = false;
+        this.tilesetloading = false;
     }
     createDisplay(){
         this.screen = document.getElementById('canvas');
@@ -50,6 +50,7 @@ export class GPU{
             this.tilesetAssembling(this.LCDC);
             this.tileSetToDebugTiles(this.tileset)
             this.drawDebugTiles();
+            this.calculateBackground();
         }  
     }
 
@@ -93,19 +94,18 @@ export class GPU{
         return tile;
     }
     tilesetAssembling(LCDC){
-        if((LCDC & 0x10) == 0x10){
-            if(!this.backgroundloading){
+        if(!this.tilesetloading){
+            if((LCDC & 0x10) == 0x10){
                 let index = 0x8000
                 for(let i = 0; i < 0xFFF; i+=16){
                     this.tileset.push(this.getTile(index + i));
                 }
                 console.log(this.tileset);
             }
-        }else{
-            if(!this.backgroundloading){
+            else{
                 let index = 0x8800
                 for(let i = 0; i < 0xFFF; i+=16){
-                    this.tileset.push(this.getTile(index + i));
+                    this.tileset.push(this.getTile(index + i)); 
                 }
             }
         }
@@ -113,12 +113,12 @@ export class GPU{
     drawDebugTiles(){
         for(let y = 0; y < DISPLAY_DEBUG_TILES_HEIGHT; y++){
             for(let x = 0; x < DISPLAY_DEBUG_TILES_WIDTH; x++){
-                this.drawPixel(x,y, this.getPixelColor(this.debugTilesFrameBuffer[y][x])) 
+                this.drawPixelDebug(x,y, this.getPixelColor(this.debugTilesFrameBuffer[y][x])) 
             }
         }
     }
     tileSetToDebugTiles(tileset){
-        if(!this.backgroundloading){
+        if(!this.tilesetloading){
             let column = -1;
             let row = 0;
             for(let tile = 0; tile < (tileset.length - 1); tile++){
@@ -134,19 +134,21 @@ export class GPU{
                         }
                         //console.log(tileset[tile][tira][pixel]);
                         if(pixel + (column * 8) <= DISPLAY_DEBUG_TILES_WIDTH || tira + (row * 8) <= DISPLAY_DEBUG_TILES_HEIGHT){
-                            console.log("guardando en la posicion x " + (pixel + (column * 8)) + " , eje Y " + (tira + (row * 8) + " el tile " + (tile + 1)));
                             this.debugTilesFrameBuffer[tira + (row * 8)][pixel + (column * 8)] = tileset[tile][tira][pixel];
                         }
                     }
                 }
             }
-            console.log(this.debugTilesFrameBuffer);
-            this.backgroundloading = true;
+            this.tilesetloading = true;
         }
     }
-    drawPixel(x, y, color){
+    drawPixelDebug(x, y, color){
         this.debugcontext.fillStyle = color;
         this.debugcontext.fillRect(x, y, 1, 1);
+    }
+    drawPixel(x, y, color){
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(x * DISPLAY_MULTIPLY, y * DISPLAY_MULTIPLY, DISPLAY_MULTIPLY, DISPLAY_MULTIPLY);
     }
     getPixelColor(pixel){
         switch(pixel){
@@ -164,6 +166,39 @@ export class GPU{
                 return '#000';
             default:
                 return '#FFF';
+        }
+    }
+    getTileMap(){
+        //que el tile map no se ejecute constantemente
+        let tileMap = new Array()
+        let index = 0;
+        if((this.LCDC & 0x8) == 0x8){
+            index = 0x9C00;
+        }else{
+            index = 0x9800;
+        }
+        for(let y = 0; y < 32; y++){
+            for(let x = 0; x < 32; x++){
+                tileMap.push(this.bus.read(index + (x + (y * 32))));
+            }
+        }
+        return tileMap;
+    }
+    calculateBackground(){
+        let tileMap = this.getTileMap();
+        let tileset = this.tileset;
+        let tile = 0;
+        for(let map = 0; map < tileMap.length; map++){
+            tile = tileMap[map];
+            let tileX = (map % 32) * 8;
+            let tileY = Math.floor(map / 32) * 8;
+            for(let y = 0; y < 8; y++){
+                for(let x = 0; x < 8; x++){
+                    let pixel = tileset[tile][y][x];
+                    let color = this.getPixelColor(pixel);
+                    this.drawPixel(tileX + x, tileY + y, color);
+                }
+            }
         }
     }
 }

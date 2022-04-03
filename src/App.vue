@@ -3,9 +3,15 @@
     <div class="row">
       <canvas id="canvas"></canvas>
     </div>
+      
     <div class="row">
       <canvas id="debug"></canvas>
     </div>
+      <button @click="hola">cargar</button>
+      <button @click="hola1">ejecutar</button>
+      <button @click="hola2">parar</button>
+      <button @click="hola3">instructions</button>
+      <button @click="hola4">memory</button>
     <div class="row">
       hola que tal
       <table class="content-table" v-if="false">
@@ -84,11 +90,6 @@
           </tr>
         </tbody>
       </table>
-      <button @click="hola">cargar</button>
-      <button @click="hola1">ejecutar</button>
-      <button @click="hola2">parar</button>
-      <button @click="hola3">instructions</button>
-      <button @click="hola4">memory</button>
     </div>
   </div>
 </template>
@@ -155,6 +156,7 @@ export default {
     hola(){
       this.gameboy = new GAMEBOY()
       this.gameboy.cpu.loadRom()
+      this.gameboy.cpu.loadBootRom()
     },
     hola1(){
       this.runGameBoy()
