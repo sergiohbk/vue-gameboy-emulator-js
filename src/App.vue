@@ -1,19 +1,22 @@
 <template>
   <div class="background">
-    <div class="row">
-      <canvas id="canvas"></canvas>
+    <div class="main-screen">
+      <div class="border-animate">
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="buttons">
+        <button @click="hola">cargar</button>
+        <button @click="hola1">ejecutar</button>
+        <button @click="hola2">parar</button>
+        <button @click="hola3">instructions</button>
+        <button @click="hola4">memory</button>
+        hola que tal
+      </div>
     </div>
-      
-    <div class="row">
+    <div class="debug-screen">
       <canvas id="debug"></canvas>
     </div>
-      <button @click="hola">cargar</button>
-      <button @click="hola1">ejecutar</button>
-      <button @click="hola2">parar</button>
-      <button @click="hola3">instructions</button>
-      <button @click="hola4">memory</button>
-    <div class="row">
-      hola que tal
+    <div>
       <table class="content-table" v-if="false">
         <thead>
           <tr>
@@ -105,12 +108,14 @@ export default {
     var cycles = 0
     var lastTime = 0
     var msperframe = 1000 / 60
+    var canvasloading = false
     return {
       ticks,
       cycles,
       lastTime,
       msperframe,
-      running
+      running,
+      canvasloading
     }
   },
   methods: {
@@ -154,6 +159,8 @@ export default {
       requestAnimationFrame(time => (this.runFrame(time)))
     },
     hola(){
+      this.canvasloading = true
+      console.log(this.canvasloading)
       this.gameboy = new GAMEBOY()
       this.gameboy.cpu.loadRom()
       this.gameboy.cpu.loadBootRom()
@@ -204,12 +211,22 @@ export default {
   left: 0;
   top: 0;
 }
+.main-screen{
+  display: flex;
+  justify-content: center;
+}
+.debug-screen{
+  display: flex;
+  justify-content: center;
+}
+.buttons{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 canvas{
   margin: 1rem;
-}
-.row{
-  display: grid;
-  justify-content: center;
+  z-index: 1;
 }
 .content-table {
   border-collapse: collapse;

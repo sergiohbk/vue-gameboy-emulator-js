@@ -30,7 +30,7 @@ export class GPU{
         this.debugscreen.width = DISPLAY_DEBUG_TILES_WIDTH;
         this.debugscreen.height = DISPLAY_DEBUG_TILES_HEIGHT;
         this.screen.style.backgroundColor = '#FFF';
-        this.screen.style.border = '1px solid #000';
+        this.screen.style.border = '3px solid #000';
         this.screen.style.display = 'block';
         this.screen.style.boxShadow = '0px 0px 20px #222';
         this.debugscreen.style.backgroundColor = '#FFF';
