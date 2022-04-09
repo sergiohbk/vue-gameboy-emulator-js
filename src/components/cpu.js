@@ -29,6 +29,20 @@ export class CPU{
         this.bus.write(DIV_pointer, 0xAC);
     }
 
+    tick(){
+        if(this.pause) return;
+        if(!this.registers.halted){
+            this.cpu_execute();
+            this.interruptsCycle();
+        }else{
+            if(this.haltHandler()){
+                this.interruptsCycle();
+            }
+        }
+        this.timerCycle();
+        return this.cpu_cycles;
+    }
+
     interruptsCycle(){
         let interrupt_request = this.bus.read(IF_pointer);
         //comprobar si al añadir un request interrupt, se aumenta el master interrupt en la siguiente iteracion
@@ -83,28 +97,6 @@ export class CPU{
             console.log(this.bus.memory[this.registers.pc].toString(16));
             this.pause = true;
         }
-    }
-    async loadBootRom(){
-        //añadimos a la memoria el bootrom de gameboy
-        const bootRom = await fetch("./roms/gb_boot_rom.gb");
-        const bootRomBuffer = await bootRom.arrayBuffer();
-        const bootRomArray = new Uint8Array(bootRomBuffer);
-        //guardamos el boot rom en la memoria
-        for(let i = 0; i < bootRomArray.length; i++){
-            this.bus.write(i, bootRomArray[i]);
-        }
-    }
-    async loadRom(){
-        const rom = await fetch('./roms/POKEMON_BLUE.GB');
-        const buffer = await rom.arrayBuffer();
-        const rombuffer = new Uint8Array(buffer);
-        this.rom = rombuffer;
-        this.bus.setRom(rombuffer);
-        //no se si habra que cargarlo en memoria
-        for(let i = 0x0000; i < 0x8000; i++){
-            this.bus.memory[i] = rombuffer[i];
-        }
-        await this.sleep(1000);
     }
 
     sleep(ms){

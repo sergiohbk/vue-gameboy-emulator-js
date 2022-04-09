@@ -99,77 +99,27 @@
 
 <script>
 import {GAMEBOY} from './components/gb.js'
-import { clocksperfps } from './components/variables/globalConstants.js'
 export default {
   name: 'App',
   setup() {
-    var running = false
-    var ticks = 0
-    var cycles = 0
-    var lastTime = 0
-    var msperframe = 1000 / 60
     var canvasloading = false
     return {
-      ticks,
-      cycles,
-      lastTime,
-      msperframe,
-      running,
       canvasloading
     }
   },
   methods: {
     //funcion de ejecucion del loop del emulador
-    runGameBoy() { 
-      this.running = true
-      this.run()
-    },
-    run(){
-      requestAnimationFrame(time => (this.runFrame(time)))
-    },
-    runFrame(currentTime){
-      if(!this.running) return;
-      if(this.gameboy.cpu.pause) return;
-
-      const delta = currentTime - this.lastTime
-      //console.log(this.gameboy.cpu.registers.pc.toString(16))
-      if(delta >= this.msperframe || this.lastTime)
-      {
-        this.fps = Math.round(1000 / delta)
-        this.lastTime = currentTime - (delta % this.msperframe)
-
-        while(this.cycles <= clocksperfps){
-          if(!this.gameboy.cpu.registers.halted)
-          {
-            this.gameboy.cpu.cpu_execute();
-            this.gameboy.cpu.interruptsCycle();
-          }else{
-            if(this.gameboy.cpu.haltHandler()){
-              this.gameboy.cpu.interruptsCycle();
-            }
-          }
-          this.gameboy.cpu.timerCycle();
-          this.cycles += this.gameboy.cpu.cpu_cycles;
-        }
-        this.cycles %= clocksperfps;
-        this.gameboy.gpu.tick();
-      }
-      
-      //console.log(this.gameboy.cpu.registers.pc.toString(16))
-      requestAnimationFrame(time => (this.runFrame(time)))
-    },
     hola(){
       this.canvasloading = true
-      console.log(this.canvasloading)
       this.gameboy = new GAMEBOY()
-      this.gameboy.cpu.loadRom()
-      this.gameboy.cpu.loadBootRom()
+      this.gameboy.loadRom()
+      this.gameboy.loadBootRom()
     },
     hola1(){
-      this.runGameBoy()
+      this.gameboy.run();
     },
     hola2(){
-      this.running = false
+      this.gameboy.running = false
       console.log(this.gameboy.cpu.test)
       console.log("breakpoint at " + this.gameboy.cpu.registers.pc.toString(16) + " la posicion de la stack esta en: " + this.gameboy.cpu.registers.sp.toString(16)
             + " registro HL: " + this.gameboy.cpu.registers.getHL().toString(16)
