@@ -31,14 +31,15 @@ export class CPU{
 
     tick(){
         if(this.pause) return;
-        if(!this.registers.halted){
-            this.cpu_execute();
-            this.interruptsCycle();
-        }else{
+        this.interruptsCycle();
+
+        if(this.registers.halted){
             if(this.haltHandler()){
-                this.interruptsCycle();
+                this.timerCycle();
+                return 4;
             }
         }
+        this.cpu_execute();
         this.timerCycle();
         return this.cpu_cycles;
     }
@@ -83,7 +84,6 @@ export class CPU{
             //this.breakpoint(0x102, true);
             //this.breakpoint(0xDF7C, true);
             this.cpu_cycles = this.instructions[this.current_opcode].cycles;
-            this.breakpoint(0x00FF, true);
             this.instructions[this.current_opcode].execute(this);
             if(this.current_opcode == 0xCB){
                 this.cpu_cycles += this.instructions[this.current_opcode].cycles;
@@ -172,22 +172,23 @@ export class CPU{
     timerCycle(){
         //si los ciclos son 0 retornar
         if(this.cpu_cycles === 0) return;
+
         this.ticks += this.cpu_cycles;
         if(this.ticks >= 256){
-            this.bus.write(DIV_pointer, this.bus.read(DIV_pointer) + 1);
-            this.ticks -= 256;
+            this.bus.write(DIV_pointer, this.bus.read(DIV_pointer) + this.ticks);
+            this.ticks = 0;
         }
         if((this.bus.read(TAC_pointer) & 0x4) == 0) return;
         this.ctu_TIMA = this.cyclesToUpTIMA();
         this.timerticks += this.cpu_cycles;
-        while(this.timerticks >= this.ctu_TIMA){
-            if(this.bus.read(TIMA_pointer) == 0xFF){
+        if(this.timerticks >= this.ctu_TIMA){
+            if(this.bus.read(TIMA_pointer) >= 0xFF){
                 this.bus.write(TIMA_pointer, this.bus.read(TMA_pointer));
                 this.bus.write(IF_pointer, this.bus.read(IF_pointer) | 0x4);
-            }else{
-                this.bus.write(TIMA_pointer, this.bus.read(TIMA_pointer) + 1);
             }
-            this.timerticks -= this.ctu_TIMA;
+
+            this.bus.write(TIMA_pointer, this.bus.read(TIMA_pointer) + 1);
+            this.timerticks = 0;
         }
     }
     cyclesToUpTIMA(){
@@ -200,8 +201,6 @@ export class CPU{
                 return 64;
             case 3:
                 return 256;
-            default:
-                return null;
         }
     }
     teststack(){

@@ -1,6 +1,7 @@
 import { Cartridge } from "./cartridge";
 import { setRunning } from "./variables/globalConstants";
 import { MEMORY_SIZE } from "./variables/busConstants";
+import { DIV_pointer } from "./timers";
 
 export class Bus{
     // 16 bit address bus
@@ -27,6 +28,9 @@ export class Bus{
         this.cartridge = new Cartridge(rom);
     }
     write(address, value){
+        if(address == DIV_pointer){
+            this.memory[address] = 0;
+        }
         if(address < 0x10000){
             this.memory[address] = value;
         }else{
@@ -51,7 +55,7 @@ export class Bus{
             }
             return returntile;
         }else{
-            console.error("Error: address out of range");
+            throw new Error("Error: address fuera de rango " + address);
         }
     }
     writeTile(){

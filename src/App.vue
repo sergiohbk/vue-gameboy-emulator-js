@@ -137,6 +137,7 @@ export default {
     },
     hola4(){
       console.log(this.gameboy.cpu.bus.memory)
+      console.log(this.gameboy.gpu.frameBuffer)
     }
   }
   

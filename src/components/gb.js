@@ -56,7 +56,7 @@ export class GAMEBOY{
         }
     }
     async loadRom(){
-        const rom = await fetch('./roms/POKEMON_BLUE.GB');
+        const rom = await fetch('./roms/interrupt_time.gb');
         const buffer = await rom.arrayBuffer();
         const rombuffer = new Uint8Array(buffer);
         this.cpu.rom = rombuffer;
