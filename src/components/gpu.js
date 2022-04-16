@@ -152,6 +152,8 @@ export class GPU{
                     if(lycompare && lycInterrupt){
                         this.bus.write(IF_pointer, this.bus.read(IF_pointer) | 0x2);
                     }
+
+                    this.cyclesCounter = this.bus.dma.transfer();
                     this.setLCDCmode('HBlank');
                 }
                 break;
@@ -171,7 +173,7 @@ export class GPU{
         }
         let spriteline
         if((this.LCDC & 0x2) == 0x2){
-            //implementar sprites
+            spriteline = this.loadspriteline();
         }
 
         this.drawtoScreen(backgroundline, windowline, spriteline);
@@ -246,6 +248,10 @@ export class GPU{
             }
         }
         return backgroundline;
+    }
+
+    loadspriteline(){
+        return
     }
 
     getTileIndexFromPixelLocation(scrolledX, scrolledY){

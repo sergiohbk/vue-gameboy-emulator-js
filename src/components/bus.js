@@ -2,6 +2,7 @@ import { Cartridge } from "./cartridge";
 import { setRunning } from "./variables/globalConstants";
 import { MEMORY_SIZE } from "./variables/busConstants";
 import { DIV_pointer } from "./timers";
+import { DMA } from "./dma";
 
 export class Bus{
     // 16 bit address bus
@@ -22,6 +23,7 @@ export class Bus{
     constructor(){
         this.memory = new Uint8Array(MEMORY_SIZE);
         this.bootrom = new Uint8Array(0x100);
+        this.dma = new DMA();
     }
     
     setRom(rom){
@@ -30,6 +32,9 @@ export class Bus{
     write(address, value){
         if(address == DIV_pointer){
             this.memory[address] = 0;
+        }
+        if(address == this.dma.DMA_pointer){
+            this.dma.active = true;
         }
         if(address < 0x10000){
             this.memory[address] = value;
