@@ -13,3 +13,5 @@ export const completeFrameScanlines = 154;
 export const cyclesPerFrame = 70224;
 export const OAMstart = 0xFE00;
 export const OAMend = 0xFE9F;
+export const MaxSpritesInLine = 10;
+export const MaxOAMsprites = 40;

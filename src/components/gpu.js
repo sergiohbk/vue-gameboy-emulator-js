@@ -1,5 +1,5 @@
 import { IF_pointer } from "./interrumpts";
-import { completeFrameScanlines, cyclesHBlank, cyclesScanline, cyclesScanlineOAM, cyclesScanlineVRAM, SCREEN_DEBUG_TILES_HEIGHT, SCREEN_DEBUG_TILES_WIDTH, SCREEN_HEIGHT, SCREEN_MULTIPLY, SCREEN_WIDTH } from "./variables/GPUConstants";
+import { completeFrameScanlines, cyclesHBlank, cyclesScanline, cyclesScanlineOAM, cyclesScanlineVRAM, MaxOAMsprites, SCREEN_DEBUG_TILES_HEIGHT, SCREEN_DEBUG_TILES_WIDTH, SCREEN_HEIGHT, SCREEN_MULTIPLY, SCREEN_WIDTH } from "./variables/GPUConstants";
 
 export class GPU{
     //(OAM - Object Attribute Memory) at $FE00-FE9F
@@ -23,6 +23,7 @@ export class GPU{
         this.LCDCstatus = 0;
         this.tilemapStartIndex = 0;
         this.mapStartCalculated = false;
+        this.windowLinesDraws = 0;
     }
     getLCDCmode(){
         let mode = this.bus.read(0xFF41) & 0x3;
@@ -169,7 +170,7 @@ export class GPU{
         }
         let windowline
         if((this.LCDC & 0x20) == 0x20){
-            //implementar menu
+            windowline = this.loadWindowLine();
         }
         let spriteline
         if((this.LCDC & 0x2) == 0x2){
@@ -250,8 +251,68 @@ export class GPU{
         return backgroundline;
     }
 
+    loadWindowLine(){
+        let ly = this.bus.read(0xFF44)
+        let wy = this.bus.read(0xFF4A);
+        let wx = this.bus.read(0xFF4B);
+        if(ly < wy || wx > SCREEN_WIDTH)
+            return
+        let windowline = [];
+        let windowTileMapMemPos = ((this.LCDC & 0x40) == 0x40) ? 0x9C00 : 0x9800;
+        let backgroundMemPos = ((this.LCDC & 0x10) == 0x10) ? 0x8000 : 0x8800;
+        var windowTileMap;
+
+        if(backgroundMemPos == 0x8800){
+            let signed = this.bus.memory.subarray(windowTileMapMemPos, windowTileMapMemPos + 0x1000);
+            windowTileMap = new Int8Array(signed);
+        }else{
+            windowTileMap = this.bus.memory.subarray(windowTileMapMemPos, windowTileMapMemPos + 0x1000);
+        }
+
+        const yPositionInTile = this.windowLinesDraws;
+
+        const correctedX = wx - 7;
+
+        for(let screenX = 0; screenX < SCREEN_WIDTH; screenX++){
+            if(correctedX > screenX){
+                windowline.push(0);
+                continue;
+            }
+            const xPositionInTile = screenX - correctedX;
+
+            const tileMapIndex = this.getTileIndexFromPixelLocation(screenX, wy);
+            const tilePixelPosition = this.getUpperLeftPixelPosition(tileMapIndex);
+
+            const xPosInTile = xPositionInTile - tilePixelPosition[0];
+            const yPosInTile = yPositionInTile - tilePixelPosition[1];
+
+            const bytePositionInTile = yPosInTile * 2;
+            const signed = backgroundMemPos == 0x8800 ? 128 : 0;
+            const tileCharIndex = windowTileMap[tileMapIndex + signed];
+            const tileCharBytePosition = tileCharIndex * 16;
+
+            const currentTileLineBytePosition = backgroundMemPos + tileCharBytePosition + bytePositionInTile;
+            const lowerByte = this.bus.read(currentTileLineBytePosition);
+            const upperByte = this.bus.read(currentTileLineBytePosition + 1);
+
+            const palette = this.getPixelInTileLine(xPosInTile, lowerByte, upperByte, false);
+
+            windowline.push(palette);
+        }
+        this.windowLinesDraws++;
+        return windowline;
+    }
+
     loadspriteline(){
-        return
+        const LCDC = this.bus.read(0xFF40);
+        const spriteHeight = (LCDC & 0x04) == 0x04 ? 16 : 8;
+
+        let spritesRendered = 0;
+
+        for(let i = 0; i < MaxOAMsprites; i++){
+            let spritenum = MaxOAMsprites - i - 1;
+            console.log(spritenum, spritesRendered, spriteHeight);
+        }
     }
 
     getTileIndexFromPixelLocation(scrolledX, scrolledY){
@@ -312,13 +373,19 @@ export class GPU{
         let tileMapIndex = Math.floor((scrollY / 8) * 32 + (scrollX / 8));
         return tileMapIndex;
     }
-    drawtoScreen(background){
+    drawtoScreen(background, window){
         const ly = this.bus.read(0xFF44);
         const backgroundline = background;
+        const windowline = window;
 
         for(let x = 0; x < SCREEN_WIDTH; x++){
             if(backgroundline != undefined){
                 this.ctx.fillStyle = this.getPixelColor(backgroundline[x]);
+                this.ctx.fillRect(x * SCREEN_MULTIPLY, ly * SCREEN_MULTIPLY, SCREEN_MULTIPLY, SCREEN_MULTIPLY);
+            }
+            //se sobreescribira posiblemente todo el fondo, asi que editar esto mas tarde
+            if(windowline != undefined){
+                this.ctx.fillStyle = this.getPixelColor(windowline[x]);
                 this.ctx.fillRect(x * SCREEN_MULTIPLY, ly * SCREEN_MULTIPLY, SCREEN_MULTIPLY, SCREEN_MULTIPLY);
             }
         }

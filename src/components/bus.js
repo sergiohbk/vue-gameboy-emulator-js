@@ -24,6 +24,9 @@ export class Bus{
         this.memory = new Uint8Array(MEMORY_SIZE);
         this.bootrom = new Uint8Array(0x100);
         this.dma = new DMA();
+        for(let i = 0x100; i < 0x8000; i++){
+            this.memory[i] = 0xFF;
+        }
     }
     
     setRom(rom){
