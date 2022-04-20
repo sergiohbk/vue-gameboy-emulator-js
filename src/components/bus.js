@@ -1,5 +1,4 @@
 import { Cartridge } from "./cartridge";
-import { setRunning } from "./variables/globalConstants";
 import { MEMORY_SIZE } from "./variables/busConstants";
 import { DIV_pointer } from "./timers";
 import { DMA } from "./dma";
@@ -23,7 +22,7 @@ export class Bus{
     constructor(){
         this.memory = new Uint8Array(MEMORY_SIZE);
         this.bootrom = new Uint8Array(0x100);
-        this.dma = new DMA();
+        this.dma = new DMA(this);
         for(let i = 0x100; i < 0x8000; i++){
             this.memory[i] = 0xFF;
         }
@@ -39,20 +38,20 @@ export class Bus{
         if(address == this.dma.DMA_pointer){
             this.dma.active = true;
         }
-        if(address < 0x10000){
+        if(address < 0x10000 && address >= 0x8000){
             this.memory[address] = value;
-        }else{
-            console.error("Error: address out of range");
-            setRunning(false);
+        }
+        if(address > 0x10000){
+            throw new Error("No se puede escribir en la direccion: " + address);
         }
     }
     read(address){
         if(address < 0x10000){
             return this.memory[address];
         }else{
-            console.error("Error: address out of range");
-            setRunning(false);
+            throw new Error("Error: address out of range " + address);
         }
+
     }
     readTile(address){
         if(address >= 0x8000 && address < 0x9FFF){

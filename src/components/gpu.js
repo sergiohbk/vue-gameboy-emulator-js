@@ -1,5 +1,6 @@
 import { IF_pointer } from "./interrumpts";
-import { completeFrameScanlines, cyclesHBlank, cyclesScanline, cyclesScanlineOAM, cyclesScanlineVRAM, MaxOAMsprites, SCREEN_DEBUG_TILES_HEIGHT, SCREEN_DEBUG_TILES_WIDTH, SCREEN_HEIGHT, SCREEN_MULTIPLY, SCREEN_WIDTH } from "./variables/GPUConstants";
+import { Sprite } from "./sprite";
+import { completeFrameScanlines, cyclesHBlank, cyclesScanline, cyclesScanlineOAM, cyclesScanlineVRAM, MaxOAMsprites, MaxSpritesInLine, SCREEN_DEBUG_TILES_HEIGHT, SCREEN_DEBUG_TILES_WIDTH, SCREEN_HEIGHT, SCREEN_MULTIPLY, SCREEN_WIDTH } from "./variables/GPUConstants";
 
 export class GPU{
     //(OAM - Object Attribute Memory) at $FE00-FE9F
@@ -24,6 +25,8 @@ export class GPU{
         this.tilemapStartIndex = 0;
         this.mapStartCalculated = false;
         this.windowLinesDraws = 0;
+        //default LCDC
+        this.bus.write(0xFF40, 0x91);
     }
     getLCDCmode(){
         let mode = this.bus.read(0xFF41) & 0x3;
@@ -164,52 +167,19 @@ export class GPU{
         this.LCDC = this.bus.read(0xFF40);
         if((this.LCDC & 0x80) != 0x80) return;
         
-        let backgroundline
+        var scanline;
         if((this.LCDC & 0x1) == 0x1){
-            backgroundline = this.loadbgline();
+            scanline = this.loadbgline();
         }
-        let windowline
         if((this.LCDC & 0x20) == 0x20){
-            windowline = this.loadWindowLine();
+            this.loadWindowLine(scanline);
         }
-        let spriteline
         if((this.LCDC & 0x2) == 0x2){
-            spriteline = this.loadspriteline();
+            this.loadspriteline(scanline);
         }
 
-        this.drawtoScreen(backgroundline, windowline, spriteline);
+        this.drawtoScreen(scanline);
     }
-    loadBackgroundLine(){
-        let backgroundline = [];
-        this.LCDC = this.bus.read(0xFF40);
-        let backgroundMemPos = ((this.LCDC & 0x10) == 0x10) ? 0x8000 : 0x8800;
-        let tilemapMemPos = ((this.LCDC & 0x08) == 0x08) ? 0x9C00 : 0x9800;
-        let isSigned = ((this.LCDC & 0x10) == 0x00);
-        let ly = this.bus.read(0xFF44);
-        let signedoffset = isSigned ? 128 : 0;
-        let scrollX = this.bus.read(0xFF43);
-        let scrollY = this.bus.read(0xFF42);
-
-        for(let x = 0; x < SCREEN_WIDTH; x++){
-            if((this.LCDC & 0x1) == 0x1){
-                scrollY = this.bus.read(0xFF42);
-                ly = this.bus.read(0xFF44);
-                scrollX = this.bus.read(0xFF43);
-                this.calculateTileMapIndex(tilemapMemPos,x, ly, scrollY, scrollX, signedoffset);
-                let tile_index = this.bus.read(this.tilemapStartIndex);
-                let bg_pixel = this.getPixel(backgroundMemPos, tile_index, ly, scrollY,x, scrollX);
-                backgroundline.push(bg_pixel);
-            }else{
-                let line = []
-                for(let i = 0; i < 8; i++){
-                    line.push(0);
-                }
-                backgroundline.push(line);
-            }
-        }
-        return backgroundline;
-    }
-
     loadbgline(){
         let backgroundline = [];
         const scrolledY = (this.bus.read(0xFF42) + this.bus.read(0xFF44)) & 0xFF;
@@ -221,6 +191,7 @@ export class GPU{
             if((this.LCDC & 0x1) == 0x1){
                 const scrolledX = (this.bus.read(0xFF43) + screenX) & 0xFF;
                 const tileMapIndex = this.getTileIndexFromPixelLocation(scrolledX, scrolledY);
+
                 const tilePixelPosition = this.getUpperLeftPixelPosition(tileMapIndex);
 
                 const xPosInTile = scrolledX - tilePixelPosition[0];
@@ -229,7 +200,8 @@ export class GPU{
                 const bytePositionInTile = yPosInTile * 2;
 
                 const relativeOffset = (this.bus.read(0xFF40) & 0x10) === 0x00 ? 128 : 0;
-                const tileCharIndex = this.bus.read(tilemapMemPos + tileMapIndex + relativeOffset);
+                const tileCharIndex = (this.bus.read(tilemapMemPos + tileMapIndex) + relativeOffset) & 0xFF;
+                
                 const tileCharBytePosition = tileCharIndex * 16;
                 
                 const currentTileLineBytePosition = backgroundMemPos + tileCharBytePosition + bytePositionInTile;
@@ -251,7 +223,7 @@ export class GPU{
         return backgroundline;
     }
 
-    loadWindowLine(){
+    loadWindowLine(scanline){
         let ly = this.bus.read(0xFF44)
         let wy = this.bus.read(0xFF4A);
         let wx = this.bus.read(0xFF4B);
@@ -288,10 +260,11 @@ export class GPU{
 
             const bytePositionInTile = yPosInTile * 2;
             const signed = backgroundMemPos == 0x8800 ? 128 : 0;
-            const tileCharIndex = windowTileMap[tileMapIndex + signed];
+            const tileCharIndex = windowTileMap[tileMapIndex] + signed;
             const tileCharBytePosition = tileCharIndex * 16;
 
             const currentTileLineBytePosition = backgroundMemPos + tileCharBytePosition + bytePositionInTile;
+
             const lowerByte = this.bus.read(currentTileLineBytePosition);
             const upperByte = this.bus.read(currentTileLineBytePosition + 1);
 
@@ -300,19 +273,76 @@ export class GPU{
             windowline.push(palette);
         }
         this.windowLinesDraws++;
-        return windowline;
+        this.putPixelsInScanLine(scanline, windowline, 0);
     }
 
-    loadspriteline(){
+    putPixelsInScanLine(scanline, pixels, x){
+        if(pixels == [] || pixels == undefined) return;
+        for(let i = 0; i < pixels.length; i++){
+            if(pixels[i] != -1)
+                scanline[x + i] = pixels[i];
+        }
+    }
+
+    loadspriteline(scanline){
         const LCDC = this.bus.read(0xFF40);
         const spriteHeight = (LCDC & 0x04) == 0x04 ? 16 : 8;
-
+        let spriteline = [];
         let spritesRendered = 0;
+        const sprites = this.getNumberOfSpritesInOAM();
+        const ly = this.bus.read(0xFF44);
 
-        for(let i = 0; i < MaxOAMsprites; i++){
-            let spritenum = MaxOAMsprites - i - 1;
-            console.log(spritenum, spritesRendered, spriteHeight);
+        for(let i = 0; i < sprites.length; i++){
+            let sprite = sprites[i]; //voltear para tema de prioridad
+            if(spritesRendered++ > MaxSpritesInLine)
+                    return;
+            if(ly >= sprite.y && (sprite.y + spriteHeight) > ly && 
+            sprite.x >= -7 && sprite.x <= SCREEN_WIDTH){
+                
+                
+                let scanlineIntersectsYat = ly - sprite.y;
+                const lastLineOfSprite = spriteHeight - 1;
+
+                if(sprite.Yflip === 0x1){
+                    scanlineIntersectsYat = lastLineOfSprite - scanlineIntersectsYat;
+                }
+
+                const tileIndex = spriteHeight === 16 ? (sprite.tileIndex & 0xFE) : sprite.tileIndex;
+                const bytePositionInTile = scanlineIntersectsYat * 2;
+                const tileCharBytePosition = tileIndex * 16;
+                const currentTileLineBytePosition = 0x8000 + tileCharBytePosition + bytePositionInTile;
+
+                const lowerByte = this.bus.read(currentTileLineBytePosition);
+                const upperByte = this.bus.read(currentTileLineBytePosition + 1);
+
+                for (let xTile = 0; xTile < 8; xTile++) {
+                    const palette = this.getPixelInTileLine(xTile, lowerByte, upperByte, sprite.Xflip === 0x1);
+                    const screenX = sprite.x + xTile;
+                    const isBehind = sprite.bgwnPriority === 0x1 && this.scanline[screenX] != 0;
+                    if(!isBehind){
+                        if(palette === 0){
+                            spriteline.push(-1);
+                        }else{
+                            spriteline.push(palette);
+                        }
+                    }
+                }
+            }
+
+            this.putPixelsInScanLine(scanline, spriteline, sprite.x);
         }
+    }
+
+    getNumberOfSpritesInOAM(){
+        let sprites = [];
+        for(let i = 0; i < MaxOAMsprites; i++){
+            let sprite = new Sprite(i);
+            sprite.getData(this.bus);
+            if(sprite.isThisSpriteExists()){
+                sprites.push(sprite);
+            }
+        }
+        return sprites;
     }
 
     getTileIndexFromPixelLocation(scrolledX, scrolledY){
@@ -373,19 +403,12 @@ export class GPU{
         let tileMapIndex = Math.floor((scrollY / 8) * 32 + (scrollX / 8));
         return tileMapIndex;
     }
-    drawtoScreen(background, window){
+    drawtoScreen(scanline){
         const ly = this.bus.read(0xFF44);
-        const backgroundline = background;
-        const windowline = window;
 
         for(let x = 0; x < SCREEN_WIDTH; x++){
-            if(backgroundline != undefined){
-                this.ctx.fillStyle = this.getPixelColor(backgroundline[x]);
-                this.ctx.fillRect(x * SCREEN_MULTIPLY, ly * SCREEN_MULTIPLY, SCREEN_MULTIPLY, SCREEN_MULTIPLY);
-            }
-            //se sobreescribira posiblemente todo el fondo, asi que editar esto mas tarde
-            if(windowline != undefined){
-                this.ctx.fillStyle = this.getPixelColor(windowline[x]);
+            if(scanline != undefined){
+                this.ctx.fillStyle = this.getPixelColor(scanline[x]);
                 this.ctx.fillRect(x * SCREEN_MULTIPLY, ly * SCREEN_MULTIPLY, SCREEN_MULTIPLY, SCREEN_MULTIPLY);
             }
         }

@@ -52,11 +52,11 @@ export class GAMEBOY{
         const bootRomArray = new Uint8Array(bootRomBuffer);
         //guardamos el boot rom en la memoria
         for(let i = 0; i < bootRomArray.length; i++){
-            this.cpu.bus.write(i, bootRomArray[i]);
+            this.cpu.bus.memory[i] = bootRomArray[i];
         }
     }
     async loadRom(){
-        const rom = await fetch('./roms/tetris.gb');
+        const rom = await fetch('./roms/POKEMON_BLUE.gb');
         const buffer = await rom.arrayBuffer();
         const rombuffer = new Uint8Array(buffer);
         this.cpu.rom = rombuffer;

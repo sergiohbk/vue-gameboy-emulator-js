@@ -1,18 +1,19 @@
 import { OAMend, OAMstart } from "./variables/GPUConstants";
 
 export class DMA {
-    constructor(){
+    constructor(bus){
         this.DMA_pointer = 0xFF46;
         this.active = false;
+        this.bus = bus;
     }
 
-    transfer(bus){
+    transfer(){
         if(!this.active) return 0;
-
-        const address = bus.read(this.DMA_pointer) * 0x100;
+        let address = this.bus.read(this.DMA_pointer);
+        address = address << 8;
         let counter = 0;
         for(let byte = OAMstart; byte < OAMend; byte++){
-            bus.write(byte, bus.read(address + counter));
+            this.bus.write(byte, this.bus.read(address + counter));
             counter++;
         }
         this.active = false;

@@ -8,7 +8,7 @@
         <button @click="hola">cargar</button>
         <button @click="hola1">ejecutar</button>
         <button @click="hola2">parar</button>
-        <button @click="hola3">instructions</button>
+        <button @click="hola3">breakpoint</button>
         <button @click="hola4">memory</button>
         hola que tal
       </div>
@@ -113,7 +113,7 @@ export default {
       this.canvasloading = true
       this.gameboy = new GAMEBOY()
       this.gameboy.loadRom()
-      this.gameboy.loadBootRom()
+      //this.gameboy.loadBootRom()
     },
     hola1(){
       this.gameboy.run();
@@ -132,12 +132,19 @@ export default {
             + " subflag: " + this.gameboy.cpu.registers.subtraction);
     },
     hola3(){
-      console.log(this.gameboy.cpu.instructions)
-      console.log(this.gameboy.cpu.cbinstructions)
+      console.log("point at " + this.gameboy.cpu.registers.pc.toString(16) + " la posicion de la stack esta en: " + this.gameboy.cpu.registers.sp.toString(16)
+            + " registro HL: " + this.gameboy.cpu.registers.getHL().toString(16)
+            + " registro BC: " + this.gameboy.cpu.registers.getBC().toString(16)
+            + " registro DE: " + this.gameboy.cpu.registers.getDE().toString(16)
+            + " registro AF: " + this.gameboy.cpu.registers.getAF().toString(16)
+            + " zeroflag: " + this.gameboy.cpu.registers.zero
+            + " carryflag: " + this.gameboy.cpu.registers.carry
+            + " halfcarryflag: " + this.gameboy.cpu.registers.halfcarry
+            + " subflag: " + this.gameboy.cpu.registers.subtraction
+            + " halt?: " + this.gameboy.cpu.registers.halted);
     },
     hola4(){
       console.log(this.gameboy.cpu.bus.memory)
-      console.log(this.gameboy.gpu.frameBuffer)
     }
   }
   

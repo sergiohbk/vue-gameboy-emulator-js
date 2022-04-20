@@ -15,7 +15,7 @@ export class Registers{
         this.subtraction = false;
         this.halfcarry = false;
         this.carry = false;
-        this.bootstrap = true;
+        this.bootstrap = false;
         this.sp = 0x0000; //stack pointer
         this.pc = 0x0000; // hay que ver cuantos bytes tiene
         if(!this.bootstrap){
