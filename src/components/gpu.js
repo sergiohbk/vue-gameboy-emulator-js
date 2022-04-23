@@ -25,8 +25,6 @@ export class GPU{
         this.tilemapStartIndex = 0;
         this.mapStartCalculated = false;
         this.windowLinesDraws = 0;
-        //default LCDC
-        this.bus.write(0xFF40, 0x91);
     }
     getLCDCmode(){
         let mode = this.bus.read(0xFF41) & 0x3;
@@ -156,8 +154,6 @@ export class GPU{
                     if(lycompare && lycInterrupt){
                         this.bus.write(IF_pointer, this.bus.read(IF_pointer) | 0x2);
                     }
-
-                    this.cyclesCounter = this.bus.dma.transfer();
                     this.setLCDCmode('HBlank');
                 }
                 break;
@@ -172,10 +168,10 @@ export class GPU{
             scanline = this.loadbgline();
         }
         if((this.LCDC & 0x20) == 0x20){
-            this.loadWindowLine(scanline);
+            //this.loadWindowLine(scanline);
         }
         if((this.LCDC & 0x2) == 0x2){
-            this.loadspriteline(scanline);
+            //this.loadspriteline(scanline);
         }
 
         this.drawtoScreen(scanline);
@@ -186,6 +182,7 @@ export class GPU{
         //const ly = this.bus.read(0xFF44);
         const tilemapMemPos = ((this.LCDC & 0x08) == 0x08) ? 0x9C00 : 0x9800;
         const backgroundMemPos = ((this.LCDC & 0x10) == 0x10) ? 0x8000 : 0x8800;
+        const paletteColors = this.getColourPalette();
 
         for(let screenX = 0; screenX < SCREEN_WIDTH; screenX++){
             if((this.LCDC & 0x1) == 0x1){
@@ -211,16 +208,30 @@ export class GPU{
 
                 const palette = this.getPixelInTileLine(xPosInTile, lowerByte, upperByte, false);
 
-                backgroundline.push(palette);
+                backgroundline.push(paletteColors[palette]);
             }else{
                 let line = []
                 for(let i = 0; i < SCREEN_WIDTH; i++){
-                    line.push(0);
+                    line.push("#FFF");
                 }
                 backgroundline.push(line);
             }
         }
         return backgroundline;
+    }
+
+    getColourPalette(){
+        const paletteRegister = this.bus.read(0xFF47);
+        let Colors = [];
+        const color0 = this.getPixelColor(paletteRegister & 0x3);
+        const color1 = this.getPixelColor((paletteRegister & 0xC) >> 2);
+        const color2 = this.getPixelColor((paletteRegister & 0x30) >> 4);
+        const color3 = this.getPixelColor((paletteRegister & 0xC0) >> 6);
+        Colors.push(color0);
+        Colors.push(color1);
+        Colors.push(color2);
+        Colors.push(color3);
+        return Colors;
     }
 
     loadWindowLine(scanline){
@@ -408,11 +419,12 @@ export class GPU{
 
         for(let x = 0; x < SCREEN_WIDTH; x++){
             if(scanline != undefined){
-                this.ctx.fillStyle = this.getPixelColor(scanline[x]);
+                this.ctx.fillStyle = scanline[x];
                 this.ctx.fillRect(x * SCREEN_MULTIPLY, ly * SCREEN_MULTIPLY, SCREEN_MULTIPLY, SCREEN_MULTIPLY);
             }
         }
     }
+
     debugTile(address){
         let tile = this.getTile(address);
         for(let i = 0; i < 8; i++){
@@ -480,7 +492,7 @@ export class GPU{
                 for(let i = 0; i < 0xFFF; i+=16){
                     this.tileset.push(this.getTile(index + i));
                 }
-                console.log(this.tileset);
+                //console.log(this.tileset);
             }
             else{
                 let index = 0x8800

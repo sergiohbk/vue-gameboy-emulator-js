@@ -38,6 +38,7 @@ export class GAMEBOY{
             while(this.cycles < cyclesPerFrame){
                 let cyclesFrame = this.cpu.tick();
                 this.gpu.tick(cyclesFrame);
+                cyclesFrame += this.cpu.bus.dma.tick();
                 this.cycles += cyclesFrame;
             }
             this.cycles %= cyclesPerFrame;
@@ -56,7 +57,7 @@ export class GAMEBOY{
         }
     }
     async loadRom(){
-        const rom = await fetch('./roms/POKEMON_BLUE.gb');
+        const rom = await fetch('./roms/Dr. Mario (World).gb');
         const buffer = await rom.arrayBuffer();
         const rombuffer = new Uint8Array(buffer);
         this.cpu.rom = rombuffer;

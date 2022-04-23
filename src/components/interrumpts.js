@@ -17,4 +17,5 @@ export const interrupts_pointer = {
 
 export function setIME(value){
     IME = value;
+    //console.log("ime is set to " + value)
 }

@@ -1,7 +1,8 @@
 import { Cartridge } from "./cartridge";
-import { MEMORY_SIZE } from "./variables/busConstants";
+import { INTERRUPT_ENABLE_REGISTER, MEMORY_SIZE } from "./variables/busConstants";
 import { DIV_pointer } from "./timers";
 import { DMA } from "./dma";
+import { set_interrupt_access} from "./extras/debugger.js";
 
 export class Bus{
     // 16 bit address bus
@@ -36,7 +37,12 @@ export class Bus{
             this.memory[address] = 0;
         }
         if(address == this.dma.DMA_pointer){
-            this.dma.active = true;
+            this.dma.activating(value);
+        }
+        if(address == INTERRUPT_ENABLE_REGISTER){
+            this.memory[address] = value;
+            console.log("Interrupt enable register: " + value.toString(2));
+            set_interrupt_access(true);
         }
         if(address < 0x10000 && address >= 0x8000){
             this.memory[address] = value;

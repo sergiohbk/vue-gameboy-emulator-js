@@ -10,6 +10,10 @@
         <button @click="hola2">parar</button>
         <button @click="hola3">breakpoint</button>
         <button @click="hola4">memory</button>
+        <input type="text" v-model="hex">
+        <span style="color:white">{{hex}}</span>
+        <button @click="hola5">seccion memoria</button>
+        <button @click="hola6">txt instrucciones</button>
         hola que tal
       </div>
     </div>
@@ -98,13 +102,20 @@
 </template>
 
 <script>
+import {saveAsATxt } from './components/extras/debugger.js'
 import {GAMEBOY} from './components/gb.js'
+import { IME } from './components/interrumpts.js'
 export default {
   name: 'App',
+  data(){
+    return{
+      hex: 0x0000
+    }
+  },
   setup() {
     var canvasloading = false
     return {
-      canvasloading
+      canvasloading,
     }
   },
   methods: {
@@ -141,10 +152,21 @@ export default {
             + " carryflag: " + this.gameboy.cpu.registers.carry
             + " halfcarryflag: " + this.gameboy.cpu.registers.halfcarry
             + " subflag: " + this.gameboy.cpu.registers.subtraction
-            + " halt?: " + this.gameboy.cpu.registers.halted);
+            + " halt?: " + this.gameboy.cpu.registers.halted
+            + " interrupt request " + this.gameboy.cpu.bus.memory[0xFF0F].toString(2)
+            + " interrupt enable " + this.gameboy.cpu.bus.memory[0xFFFF].toString(2)
+            + " ime " + IME
+            + " dmaActive " + this.gameboy.cpu.bus.dma.active);
     },
     hola4(){
       console.log(this.gameboy.cpu.bus.memory)
+    },
+    hola5(){
+      let hexi = parseInt(this.hex, 16)
+      console.log(this.gameboy.cpu.bus.memory[hexi].toString(16))
+    },
+    hola6(){
+      saveAsATxt();
     }
   }
   
