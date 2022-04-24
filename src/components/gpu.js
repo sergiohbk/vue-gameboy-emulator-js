@@ -154,6 +154,7 @@ export class GPU{
                     if(lycompare && lycInterrupt){
                         this.bus.write(IF_pointer, this.bus.read(IF_pointer) | 0x2);
                     }
+                    this.bus.dma.transfer();
                     this.setLCDCmode('HBlank');
                 }
                 break;
@@ -168,10 +169,10 @@ export class GPU{
             scanline = this.loadbgline();
         }
         if((this.LCDC & 0x20) == 0x20){
-            //this.loadWindowLine(scanline);
+            this.loadWindowLine(scanline);
         }
         if((this.LCDC & 0x2) == 0x2){
-            //this.loadspriteline(scanline);
+            this.loadspriteline(scanline);
         }
 
         this.drawtoScreen(scanline);
@@ -222,6 +223,20 @@ export class GPU{
 
     getColourPalette(){
         const paletteRegister = this.bus.read(0xFF47);
+        let Colors = [];
+        const color0 = this.getPixelColor(paletteRegister & 0x3);
+        const color1 = this.getPixelColor((paletteRegister & 0xC) >> 2);
+        const color2 = this.getPixelColor((paletteRegister & 0x30) >> 4);
+        const color3 = this.getPixelColor((paletteRegister & 0xC0) >> 6);
+        Colors.push(color0);
+        Colors.push(color1);
+        Colors.push(color2);
+        Colors.push(color3);
+        return Colors;
+    }
+    getColourSpritePalette(palette){
+        let paletteRegister = palette === 0 ? this.bus.read(0xFF48) : this.bus.read(0xFF49);
+        paletteRegister = paletteRegister & 0xFC;
         let Colors = [];
         const color0 = this.getPixelColor(paletteRegister & 0x3);
         const color1 = this.getPixelColor((paletteRegister & 0xC) >> 2);
@@ -305,12 +320,12 @@ export class GPU{
 
         for(let i = 0; i < sprites.length; i++){
             let sprite = sprites[i]; //voltear para tema de prioridad
-            if(spritesRendered++ > MaxSpritesInLine)
+            if(spritesRendered+1 > MaxSpritesInLine)
                     return;
             if(ly >= sprite.y && (sprite.y + spriteHeight) > ly && 
             sprite.x >= -7 && sprite.x <= SCREEN_WIDTH){
                 
-                
+                let palleteColor = this.getColourSpritePalette(sprite.palette);
                 let scanlineIntersectsYat = ly - sprite.y;
                 const lastLineOfSprite = spriteHeight - 1;
 
@@ -327,19 +342,21 @@ export class GPU{
                 const upperByte = this.bus.read(currentTileLineBytePosition + 1);
 
                 for (let xTile = 0; xTile < 8; xTile++) {
-                    const palette = this.getPixelInTileLine(xTile, lowerByte, upperByte, sprite.Xflip === 0x1);
+                    const paletteIndex = this.getPixelInTileLine(xTile, lowerByte, upperByte, sprite.Xflip === 0x1);
+                    const palette = palleteColor[paletteIndex]; 
                     const screenX = sprite.x + xTile;
                     const isBehind = sprite.bgwnPriority === 0x1 && this.scanline[screenX] != 0;
                     if(!isBehind){
-                        if(palette === 0){
+                        if(paletteIndex === 0){
                             spriteline.push(-1);
                         }else{
                             spriteline.push(palette);
                         }
                     }
                 }
+                spritesRendered += 1;
             }
-
+            //revisar
             this.putPixelsInScanLine(scanline, spriteline, sprite.x);
         }
     }

@@ -38,7 +38,6 @@ export class GAMEBOY{
             while(this.cycles < cyclesPerFrame){
                 let cyclesFrame = this.cpu.tick();
                 this.gpu.tick(cyclesFrame);
-                cyclesFrame += this.cpu.bus.dma.tick();
                 this.cycles += cyclesFrame;
             }
             this.cycles %= cyclesPerFrame;

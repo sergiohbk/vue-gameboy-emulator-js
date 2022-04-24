@@ -37,11 +37,10 @@ export class Bus{
             this.memory[address] = 0;
         }
         if(address == this.dma.DMA_pointer){
-            this.dma.activating(value);
+            this.dma.active = true;
         }
         if(address == INTERRUPT_ENABLE_REGISTER){
             this.memory[address] = value;
-            console.log("Interrupt enable register: " + value.toString(2));
             set_interrupt_access(true);
         }
         if(address < 0x10000 && address >= 0x8000){

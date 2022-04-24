@@ -20,6 +20,11 @@ export class Sprite{
     }
 
     isThisSpriteExists(){
-        return this.y > 0 || this.x > 0 || this.tileIndex > 0 || this.attributes > 0;
+        //tecnicamente esta idea debe funcionar, ya que nunca estaria en pantalla en caso de si haber sprite
+        if(this.y == 0xF0 && this.x == 0xF8 && this.tileIndex == 0 && this.attributes == 0){
+            return false;
+        }else{
+            return true;
+        }
     }
 }

@@ -9,7 +9,6 @@ import { otherinstructions } from "./instrucciones/otherinstructions";
 import { bitinstuctions } from "./instrucciones/bitinstructions";
 import { IME, IF_pointer, interrupts_pointer, masterInterruptPointer, setIME } from "./interrumpts";
 import { DIV_pointer, TAC_pointer, TIMA_pointer, TMA_pointer } from "./timers";
-import { startSavingInstructions } from "./extras/debugger";
 
 export class CPU{
     constructor(){
@@ -134,8 +133,13 @@ export class CPU{
             if(this.current_opcode == 0xCB){
                 this.cpu_cycles += this.instructions[this.current_opcode].cycles;
             }
-            if(this.registers.pc == 0x1FE)
-                startSavingInstructions(true);
+
+            if(this.bus.dma.isTransferring){
+                this.cpu_cycles += 160;
+                this.bus.dma.isTransferring = false;
+            }
+            /*if(this.registers.pc == 0x1FE)
+                startSavingInstructions(true);*/
 
             //rangeInstructionsToLog(this.registers.pc, this.instructions[this.current_opcode].name);
             
