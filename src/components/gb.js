@@ -40,8 +40,10 @@ export class GAMEBOY{
                 this.gpu.tick(cyclesFrame);
                 this.cycles += cyclesFrame;
             }
+            
             this.cycles %= cyclesPerFrame;
         }
+        console.log("background palette " + this.cpu.bus.memory[0xFF47] + "palette 0 " + this.cpu.bus.memory[0xFF48] + " palette 1 " + this.cpu.bus.memory[0xFF49]);
         requestAnimationFrame(time => (this.runFrame(time)))
     }
 
@@ -56,7 +58,7 @@ export class GAMEBOY{
         }
     }
     async loadRom(){
-        const rom = await fetch('./roms/Dr. Mario (World).gb');
+        const rom = await fetch('./roms/dmg-acid2.gb');
         const buffer = await rom.arrayBuffer();
         const rombuffer = new Uint8Array(buffer);
         this.cpu.rom = rombuffer;

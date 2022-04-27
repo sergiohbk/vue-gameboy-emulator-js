@@ -9,6 +9,7 @@ import { otherinstructions } from "./instrucciones/otherinstructions";
 import { bitinstuctions } from "./instrucciones/bitinstructions";
 import { IME, IF_pointer, interrupts_pointer, masterInterruptPointer, setIME } from "./interrumpts";
 import { DIV_pointer, TAC_pointer, TIMA_pointer, TMA_pointer } from "./timers";
+import { startSavingInstructions, rangeInstructionsToLog } from "./extras/debugger";
 
 export class CPU{
     constructor(){
@@ -48,6 +49,7 @@ export class CPU{
     }
 
     inicialiceMemory(){
+        //this.bus.memory[0xFF00] = 0xFF;
         this.bus.memory[0xFF04] = 0xAC;
         this.bus.memory[0xFF05] = 0x00;
         this.bus.memory[0xFF06] = 0x00;
@@ -138,10 +140,8 @@ export class CPU{
                 this.cpu_cycles += 160;
                 this.bus.dma.isTransferring = false;
             }
-            /*if(this.registers.pc == 0x1FE)
-                startSavingInstructions(true);*/
-
-            //rangeInstructionsToLog(this.registers.pc, this.instructions[this.current_opcode].name);
+            this.debugInstruction();
+            rangeInstructionsToLog(this.registers.pc, this.instructions[this.current_opcode].name);
             
             //this.breakpoint(0x359, false);
         }else
@@ -152,6 +152,10 @@ export class CPU{
         }
     }
 
+    debugInstruction(){
+        if(this.bus.controller.startPressed)
+            startSavingInstructions(true);
+    }
     sleep(ms){
         return new Promise(resolve => setTimeout(resolve, ms));
     }

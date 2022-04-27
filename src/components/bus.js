@@ -2,7 +2,7 @@ import { Cartridge } from "./cartridge";
 import { INTERRUPT_ENABLE_REGISTER, MEMORY_SIZE } from "./variables/busConstants";
 import { DIV_pointer } from "./timers";
 import { DMA } from "./dma";
-import { set_interrupt_access} from "./extras/debugger.js";
+import { Controller } from "./controller";
 
 export class Bus{
     // 16 bit address bus
@@ -24,6 +24,7 @@ export class Bus{
         this.memory = new Uint8Array(MEMORY_SIZE);
         this.bootrom = new Uint8Array(0x100);
         this.dma = new DMA(this);
+        this.controller = new Controller(this);
         for(let i = 0x100; i < 0x8000; i++){
             this.memory[i] = 0xFF;
         }
@@ -35,28 +36,39 @@ export class Bus{
     write(address, value){
         if(address == DIV_pointer){
             this.memory[address] = 0;
+            return;
+        }
+        if(address == 0xff00){
+            this.controller.write(value);
+            this.memory[address] = value;
+            return;
         }
         if(address == this.dma.DMA_pointer){
             this.dma.active = true;
         }
         if(address == INTERRUPT_ENABLE_REGISTER){
             this.memory[address] = value;
-            set_interrupt_access(true);
+            return;
         }
         if(address < 0x10000 && address >= 0x8000){
             this.memory[address] = value;
+            return;
         }
         if(address > 0x10000){
             throw new Error("No se puede escribir en la direccion: " + address);
         }
     }
     read(address){
+        if(address == 0xff00){
+            this.memory[address] = this.controller.read();
+            //console.log("read: " + this.memory[address].toString(2));
+            return this.memory[address];
+        }
         if(address < 0x10000){
             return this.memory[address];
         }else{
             throw new Error("Error: address out of range " + address);
         }
-
     }
     readTile(address){
         if(address >= 0x8000 && address < 0x9FFF){
@@ -69,8 +81,5 @@ export class Bus{
         }else{
             throw new Error("Error: address fuera de rango " + address);
         }
-    }
-    writeTile(){
-
     }
 }

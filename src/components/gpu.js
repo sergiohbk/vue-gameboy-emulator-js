@@ -25,6 +25,7 @@ export class GPU{
         this.tilemapStartIndex = 0;
         this.mapStartCalculated = false;
         this.windowLinesDraws = 0;
+        this.lastSprite = undefined;
     }
     getLCDCmode(){
         let mode = this.bus.read(0xFF41) & 0x3;
@@ -131,6 +132,7 @@ export class GPU{
                     this.resetFrameBuffer();
                     if(ly === completeFrameScanlines){
                         this.bus.write(0xFF44, 0);
+                        this.windowLinesDraws = 0;
                         this.setLCDCmode('OAM');
                     }
                 }
@@ -164,11 +166,12 @@ export class GPU{
         this.LCDC = this.bus.read(0xFF40);
         if((this.LCDC & 0x80) != 0x80) return;
         
-        var scanline;
+        var scanline = new Array(SCREEN_WIDTH);
         if((this.LCDC & 0x1) == 0x1){
             scanline = this.loadbgline();
         }
         if((this.LCDC & 0x20) == 0x20){
+            //revisar
             this.loadWindowLine(scanline);
         }
         if((this.LCDC & 0x2) == 0x2){
@@ -183,7 +186,6 @@ export class GPU{
         //const ly = this.bus.read(0xFF44);
         const tilemapMemPos = ((this.LCDC & 0x08) == 0x08) ? 0x9C00 : 0x9800;
         const backgroundMemPos = ((this.LCDC & 0x10) == 0x10) ? 0x8000 : 0x8800;
-        const paletteColors = this.getColourPalette();
 
         for(let screenX = 0; screenX < SCREEN_WIDTH; screenX++){
             if((this.LCDC & 0x1) == 0x1){
@@ -206,7 +208,7 @@ export class GPU{
 
                 const lowerByte = this.bus.read(currentTileLineBytePosition);
                 const upperByte = this.bus.read(currentTileLineBytePosition + 1);
-
+                const paletteColors = this.getColourPalette();
                 const palette = this.getPixelInTileLine(xPosInTile, lowerByte, upperByte, false);
 
                 backgroundline.push(paletteColors[palette]);
@@ -236,12 +238,12 @@ export class GPU{
     }
     getColourSpritePalette(palette){
         let paletteRegister = palette === 0 ? this.bus.read(0xFF48) : this.bus.read(0xFF49);
-        paletteRegister = paletteRegister & 0xFC;
         let Colors = [];
         const color0 = this.getPixelColor(paletteRegister & 0x3);
         const color1 = this.getPixelColor((paletteRegister & 0xC) >> 2);
         const color2 = this.getPixelColor((paletteRegister & 0x30) >> 4);
         const color3 = this.getPixelColor((paletteRegister & 0xC0) >> 6);
+
         Colors.push(color0);
         Colors.push(color1);
         Colors.push(color2);
@@ -253,18 +255,21 @@ export class GPU{
         let ly = this.bus.read(0xFF44)
         let wy = this.bus.read(0xFF4A);
         let wx = this.bus.read(0xFF4B);
-        if(ly < wy || wx > SCREEN_WIDTH)
+        if(ly < wy || wx > 166)
             return
         let windowline = [];
         let windowTileMapMemPos = ((this.LCDC & 0x40) == 0x40) ? 0x9C00 : 0x9800;
         let backgroundMemPos = ((this.LCDC & 0x10) == 0x10) ? 0x8000 : 0x8800;
         var windowTileMap;
 
+        const paletteColors = this.getColourPalette();
+
         if(backgroundMemPos == 0x8800){
             let signed = this.bus.memory.subarray(windowTileMapMemPos, windowTileMapMemPos + 0x1000);
             windowTileMap = new Int8Array(signed);
         }else{
-            windowTileMap = this.bus.memory.subarray(windowTileMapMemPos, windowTileMapMemPos + 0x1000);
+            let unsigned = this.bus.memory.subarray(windowTileMapMemPos, windowTileMapMemPos + 0x1000);
+            windowTileMap = new Uint8Array(unsigned);
         }
 
         const yPositionInTile = this.windowLinesDraws;
@@ -273,12 +278,12 @@ export class GPU{
 
         for(let screenX = 0; screenX < SCREEN_WIDTH; screenX++){
             if(correctedX > screenX){
-                windowline.push(0);
+                windowline.push(-1);
                 continue;
             }
             const xPositionInTile = screenX - correctedX;
 
-            const tileMapIndex = this.getTileIndexFromPixelLocation(screenX, wy);
+            const tileMapIndex = this.getTileIndexFromPixelLocation(xPositionInTile, yPositionInTile);
             const tilePixelPosition = this.getUpperLeftPixelPosition(tileMapIndex);
 
             const xPosInTile = xPositionInTile - tilePixelPosition[0];
@@ -296,7 +301,7 @@ export class GPU{
 
             const palette = this.getPixelInTileLine(xPosInTile, lowerByte, upperByte, false);
 
-            windowline.push(palette);
+            windowline.push(paletteColors[palette]);
         }
         this.windowLinesDraws++;
         this.putPixelsInScanLine(scanline, windowline, 0);
@@ -314,12 +319,13 @@ export class GPU{
         const LCDC = this.bus.read(0xFF40);
         const spriteHeight = (LCDC & 0x04) == 0x04 ? 16 : 8;
         let spriteline = [];
+        let spritePriority = new Array(SCREEN_WIDTH).fill(50);
         let spritesRendered = 0;
         const sprites = this.getNumberOfSpritesInOAM();
         const ly = this.bus.read(0xFF44);
 
         for(let i = 0; i < sprites.length; i++){
-            let sprite = sprites[i]; //voltear para tema de prioridad
+            let sprite = sprites[i];
             if(spritesRendered+1 > MaxSpritesInLine)
                     return;
             if(ly >= sprite.y && (sprite.y + spriteHeight) > ly && 
@@ -345,19 +351,26 @@ export class GPU{
                     const paletteIndex = this.getPixelInTileLine(xTile, lowerByte, upperByte, sprite.Xflip === 0x1);
                     const palette = palleteColor[paletteIndex]; 
                     const screenX = sprite.x + xTile;
-                    const isBehind = sprite.bgwnPriority === 0x1 && this.scanline[screenX] != 0;
-                    if(!isBehind){
+                    const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX] != "#FFF";
+                    const priority = spritePriority[sprite.x] < i;
+
+                    if(!isBehind && !priority){
                         if(paletteIndex === 0){
                             spriteline.push(-1);
+                            
                         }else{
                             spriteline.push(palette);
                         }
+                        spritePriority[screenX] = i;
+                    }else{
+                        spriteline.push(-1);
                     }
                 }
+                this.lastSprite = sprite;
                 spritesRendered += 1;
             }
-            //revisar
             this.putPixelsInScanLine(scanline, spriteline, sprite.x);
+            spriteline = [];
         }
     }
 
@@ -564,11 +577,11 @@ export class GPU{
                 //blanco
                 return '#FFF';
             case 1:
-                //gris oscuro
-                return '#545454';
-            case 2:
                 //gris claro
                 return '#A9A9A9';
+            case 2:
+                //gris oscuro
+                return '#545454';
             case 3:
                 //negro
                 return '#000';
