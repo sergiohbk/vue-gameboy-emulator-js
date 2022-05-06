@@ -2,7 +2,7 @@
   <div class="background">
     <div class="main-screen">
       <div class="border-animate">
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" class="screen"></canvas>
       </div>
       <div class="buttons">
         <button @click="hola">cargar</button>
@@ -237,6 +237,10 @@ canvas{
 }
 .content-table tbody tr:last-of-type {
   border-bottom: 5px solid #6fd6ff;
+}
+.screen{
+  height: 600px;
+  width: 800px;
 }
 
 </style>

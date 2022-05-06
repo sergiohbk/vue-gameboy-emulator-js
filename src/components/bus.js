@@ -3,6 +3,7 @@ import { INTERRUPT_ENABLE_REGISTER, MEMORY_SIZE } from "./variables/busConstants
 import { DIV_pointer } from "./timers";
 import { DMA } from "./dma";
 import { Controller } from "./controller";
+import { IF_pointer } from "./interrumpts";
 
 export class Bus{
     // 16 bit address bus
@@ -34,13 +35,12 @@ export class Bus{
         this.cartridge = new Cartridge(rom);
     }
     write(address, value){
-        if(address == DIV_pointer){
+        if(address == DIV_pointer || address == IF_pointer){
             this.memory[address] = 0;
             return;
         }
         if(address == 0xff00){
             this.controller.write(value);
-            this.memory[address] = value;
             return;
         }
         if(address == this.dma.DMA_pointer){
@@ -61,7 +61,6 @@ export class Bus{
     read(address){
         if(address == 0xff00){
             this.memory[address] = this.controller.read();
-            //console.log("read: " + this.memory[address].toString(2));
             return this.memory[address];
         }
         if(address < 0x10000){

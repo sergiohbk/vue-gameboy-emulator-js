@@ -1,3 +1,5 @@
+import { startSavingInstructions } from "./extras/debugger";
+
 export class Controller{
     
     constructor(bus){
@@ -45,8 +47,10 @@ export class Controller{
             this.aPressed = isPressed;
         if(keycode == this.b) 
             this.bPressed = isPressed;
-        if(keycode == this.start) 
+        if(keycode == this.start){
             this.startPressed = isPressed;
+            startSavingInstructions(isPressed);
+        }
         if(keycode == this.select) 
             this.selectPressed = isPressed;
         if(keycode == this.down)
@@ -68,31 +72,32 @@ export class Controller{
     }
 
     read(){
-        let byte = 0xC0;
+        let byte = 0xFF;
         if(this.button){
             if(this.aPressed) 
-                byte = (byte | 0x01);
+                byte = (byte & 0xFE);
             if(this.bPressed) 
-                byte = (byte | 0x02);
+                byte = (byte & 0xFD);
             if(this.startPressed) 
-                byte = (byte | 0x08);
+                byte = (byte & 0xF7);
             if(this.selectPressed)
-                byte = (byte | 0x04);
+                byte = (byte & 0xFB);
 
-            byte = (byte | 0x20);
+            byte = (byte & 0xDF);
         }
         if(this.direction){
             if(this.downPressed)
-                byte = (byte | 0x08);
+                byte = (byte & 0xF7);
             if(this.upPressed) 
-                byte = (byte | 0x04);
+                byte = (byte & 0xFB);
             if(this.leftPressed)
-                byte = (byte | 0x02);
+                byte = (byte & 0xFD);
             if(this.rightPressed) 
-                byte = (byte | 0x01);
+                byte = (byte & 0xFE);
         
-            byte = byte | 0x10;
+            byte = (byte & 0xEF);
         }
+        
         return byte;
     }
     flushPressed(){

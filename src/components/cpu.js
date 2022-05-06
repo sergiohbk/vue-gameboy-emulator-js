@@ -9,7 +9,7 @@ import { otherinstructions } from "./instrucciones/otherinstructions";
 import { bitinstuctions } from "./instrucciones/bitinstructions";
 import { IME, IF_pointer, interrupts_pointer, masterInterruptPointer, setIME } from "./interrumpts";
 import { DIV_pointer, TAC_pointer, TIMA_pointer, TMA_pointer } from "./timers";
-import { startSavingInstructions, rangeInstructionsToLog } from "./extras/debugger";
+import { rangeInstructionsToLog } from "./extras/debugger";
 
 export class CPU{
     constructor(){
@@ -36,21 +36,21 @@ export class CPU{
         this.interruptsCycle();
 
         if(this.registers.halted){
-            /*if(this.haltHandler()){
-                
-            }*/
-            this.cpu_cycles += 4;
+            this.cpu_cycles += 1;
             this.timerCycle();
-            return this.cpu_cycles;
+            let cycles = this.cpu_cycles;
+            this.cpu_cycles = 0;
+            return cycles;
         }
         this.cpu_execute();
         this.timerCycle();
-        return this.cpu_cycles;
+        let cycles = this.cpu_cycles;
+        this.cpu_cycles = 0;
+        return cycles;
     }
 
     inicialiceMemory(){
-        //this.bus.memory[0xFF00] = 0xFF;
-        this.bus.memory[0xFF04] = 0xAC;
+        this.ticks = 0xABCC;
         this.bus.memory[0xFF05] = 0x00;
         this.bus.memory[0xFF06] = 0x00;
         this.bus.memory[0xFF07] = 0x00;
@@ -87,39 +87,32 @@ export class CPU{
 
     interruptsCycle(){
         
-
         let interrupt_request = this.bus.read(IF_pointer);
-        //comprobar si al añadir un request interrupt, se aumenta el master interrupt en la siguiente iteracion
         let interrupt_enable = this.bus.read(masterInterruptPointer);
-        //console.log("interrupt request " + interrupt_request.toString(2))
-        //console.log("interrupt enable " +interrupt_enable.toString(2))
-        let interrupt = interrupt_request & interrupt_enable;
-        //console.log("interrupt and " + interrupt.toString(2) + " ime " + IME)
+        let interrupt = (interrupt_request & interrupt_enable) & 0x1F;
         if(interrupt > 0){
             this.registers.halted = false;
-
-            if(!IME && this.registers.halted){
-                return;
-            }
+            this.cpu_cycles += 4;
         }else{
             return;
         }
 
         if(!IME) return;
 
-        if(interrupt & 0x1){
+        if((interrupt & 0x1) == 0x1){
+            console.log("VBlank");
             this.interrupt_VBlank();
         }
-        else if(interrupt & 0x2){
+        else if((interrupt & 0x2) == 0x2){
             this.interrupt_LCDSTAT();
         }
-        else if(interrupt & 0x4){
+        else if((interrupt & 0x4) == 0x4){
             this.interrupt_Timer();
         }
-        else if(interrupt & 0x8){
+        else if((interrupt & 0x8) == 0x8){
             this.interrupt_Serial();
         }
-        else if(interrupt & 0x10){
+        else if((interrupt & 0x10) == 0x10){
             this.interrupt_Joypad();
         }
     }
@@ -127,10 +120,10 @@ export class CPU{
     cpu_execute(){
         //guarda el opcode en current opcode
         this.current_opcode = this.bus.memory[this.registers.pc];
+        let pc = this.registers.pc;
         if(this.instructions[this.current_opcode] !== undefined){
-            //this.breakpoint(0x101, true);
-            //this.breakpoint(0xDF7C, true);
-            this.cpu_cycles = this.instructions[this.current_opcode].cycles;
+
+            this.cpu_cycles += this.instructions[this.current_opcode].cycles;
             this.instructions[this.current_opcode].execute(this);
             if(this.current_opcode == 0xCB){
                 this.cpu_cycles += this.instructions[this.current_opcode].cycles;
@@ -140,10 +133,8 @@ export class CPU{
                 this.cpu_cycles += 160;
                 this.bus.dma.isTransferring = false;
             }
-            this.debugInstruction();
-            rangeInstructionsToLog(this.registers.pc, this.instructions[this.current_opcode].name);
-            
-            //this.breakpoint(0x359, false);
+            rangeInstructionsToLog(pc, this.instructions[this.current_opcode].name);
+
         }else
         {
             console.error("instruccion desconocida o invalida con el opcode " + this.current_opcode + " en la posicion " + this.registers.pc.toString(16));
@@ -152,10 +143,6 @@ export class CPU{
         }
     }
 
-    debugInstruction(){
-        if(this.bus.controller.startPressed)
-            startSavingInstructions(true);
-    }
     sleep(ms){
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -191,59 +178,64 @@ export class CPU{
     interrupt_VBlank(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.VBlank;
-        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xFE);
+        this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xFE;
         this.cpu_cycles += 20;
         setIME(false);
     }
     interrupt_LCDSTAT(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.LCDSTAT;
-        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xFD);
+        this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xFD;
         this.cpu_cycles += 20;
         setIME(false);
     }
     interrupt_Timer(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Timer;
-        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xFB);
+        this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xFB;
         this.cpu_cycles += 20;
         setIME(false);
     }
     interrupt_Serial(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Serial;
-        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xF7);
+        this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xF7;
         this.cpu_cycles += 20;
         setIME(false);
     }
     interrupt_Joypad(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Joypad;
-        this.bus.write(IF_pointer, this.bus.read(IF_pointer) & 0xEF);
-        //this.bus.write(masterInterruptPointer, this.bus.read(masterInterruptPointer) & 0xEF);
+        this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xEF;
         this.cpu_cycles += 20;
         setIME(false);
     }
+
     timerCycle(){
         //si los ciclos son 0 retornar
         if(this.cpu_cycles === 0) return;
 
         this.ticks += this.cpu_cycles;
-        if(this.ticks >= 255){
-            this.bus.write(DIV_pointer, (this.bus.read(DIV_pointer) + this.ticks) & 0xff);
+
+        this.bus.memory[DIV_pointer] = this.ticks >> 8;
+
+        if(this.ticks >= 0xFFFF){
             this.ticks = 0;
         }
+
         if((this.bus.read(TAC_pointer) & 0x4) == 0) return;
+
         this.ctu_TIMA = this.cyclesToUpTIMA();
         this.timerticks += this.cpu_cycles;
+
         if(this.timerticks >= this.ctu_TIMA){
-            this.timerticks = 0;
-            if(this.bus.read(TIMA_pointer) == 255){
-                this.bus.write(TIMA_pointer, this.bus.read(TMA_pointer));
-                this.bus.write(IF_pointer, this.bus.read(IF_pointer) | 0x4);
+            if(this.bus.read(TIMA_pointer) == 0xFF){
+                this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x4;
+                this.bus.memory[TIMA_pointer] = this.bus.memory[TMA_pointer];
             }else{
-                this.bus.write(TIMA_pointer, this.bus.read(TIMA_pointer) + 1);
+                this.bus.memory[TIMA_pointer]++;
             }
+            this.timerticks = 0;
         }
     }
     cyclesToUpTIMA(){
@@ -256,8 +248,6 @@ export class CPU{
                 return 64;
             case 3:
                 return 256;
-            default:
-                return 1024;
         }
     }
     teststack(){
@@ -282,7 +272,7 @@ export class CPU{
     }
     printTest(){
         if(this.test.length > 15){
-            console.log(this.test);
+            //console.log(this.test);
         }
     }
     haltHandler(){
