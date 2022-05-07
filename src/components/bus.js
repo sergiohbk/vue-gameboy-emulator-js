@@ -4,6 +4,7 @@ import { DIV_pointer } from "./timers";
 import { DMA } from "./dma";
 import { Controller } from "./controller";
 import { IF_pointer } from "./interrumpts";
+import { MBC } from "./mbc";
 
 export class Bus{
     // 16 bit address bus
@@ -33,6 +34,7 @@ export class Bus{
     
     setRom(rom){
         this.cartridge = new Cartridge(rom);
+        this.MBC = new MBC(this.cartridge);
     }
     write(address, value){
         if(address == DIV_pointer || address == IF_pointer){
@@ -49,6 +51,27 @@ export class Bus{
         if(address == INTERRUPT_ENABLE_REGISTER){
             this.memory[address] = value;
             return;
+        }
+        if(address < 0x1FFF){
+            this.MBC.enablingRam(value);
+            return;
+        }
+        if(address < 0x2000 && address > 0x3FFF){
+            this.MBC.setTheRomBankNumber(value);
+            return;
+        }
+        if(address > 0x4000 && address < 0x5FFF){
+            this.MBC.setTheRamBankNumber(value);
+            return;
+        }
+        if(address > 0x6000 && address < 0x7FFF){
+            this.MBC.setModeFlag(value);
+            return;
+        }
+        if(address > 0xA000 && address < 0xBFFF){
+            //escribiendo en la ram externa
+            if(!this.MBC.externalRam)
+                return;
         }
         if(address < 0x10000 && address >= 0x8000){
             this.memory[address] = value;

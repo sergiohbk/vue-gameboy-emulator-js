@@ -8,9 +8,10 @@ export class Cartridge{
         this.title = this.getTitle(this.rom);
         this.newLIC = this.getLicenseCode(this.rom);
         this.cartType = this.getCartridgeType(this.rom);
-        this.rom_size = rom.length;
+        this.rom_size = this.getRomSize();
         this.rom_data_pointer;
         this.rom_header_pointer = 0x100;
+        this.ram_size = this.getRamSize();
 
         //usos de la rom
         this.MBC1 = false;
@@ -175,6 +176,60 @@ export class Cartridge{
         i = rom[0x014D] & 0xFF;
         x = x & 0xFF;
         return i === x ? "rom header checksum correcto" : "rom header checksum incorrecto";
+    }
+
+    getRamSize(){
+        let ramSizeByte = this.rom[0x149];
+
+        switch(ramSizeByte){
+            case 0x00:
+                return 0;
+            case 0x01:
+                return 0;
+            case 0x02:
+                return 1;
+            case 0x03:
+                return 4;
+            case 0x04:
+                return 16;
+            case 0x05:
+                return 8;
+            default:
+                return 0;
+        }
+    }
+
+    getRomSize(){
+        let romSizeByte = this.rom[0x148];
+
+        switch(romSizeByte){
+            case 0x00:
+                return 2;
+            case 0x01:
+                return 4;
+            case 0x02:
+                return 8;
+            case 0x03:
+                return 16;
+            case 0x04:
+                return 32;
+            case 0x05:
+                return 64;
+            case 0x06:
+                return 128;
+            case 0x07:
+                return 256;
+            case 0x08:
+                return 512;
+            case 0x52:
+                return 72;
+            case 0x53:
+                return 80;
+            case 0x54:
+                return 96;
+            default:
+                return 0;
+        }
     }
 
     getRomData(address){
