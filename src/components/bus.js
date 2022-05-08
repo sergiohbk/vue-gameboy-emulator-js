@@ -34,7 +34,8 @@ export class Bus{
     
     setRom(rom){
         this.cartridge = new Cartridge(rom);
-        this.MBC = new MBC(this.cartridge);
+        this.MBC = new MBC(this.cartridge, this);
+        console.log(this.MBC);
     }
     write(address, value){
         if(address == DIV_pointer || address == IF_pointer){
@@ -56,7 +57,7 @@ export class Bus{
             this.MBC.enablingRam(value);
             return;
         }
-        if(address < 0x2000 && address > 0x3FFF){
+        if(address > 0x2000 && address < 0x3FFF){
             this.MBC.setTheRomBankNumber(value);
             return;
         }
@@ -85,6 +86,9 @@ export class Bus{
         if(address == 0xff00){
             this.memory[address] = this.controller.read();
             return this.memory[address];
+        }
+        if(address > 0xA000 && address < 0xC000){
+            if(!this.MBC.externalRam) return 0xFF;
         }
         if(address < 0x10000){
             return this.memory[address];

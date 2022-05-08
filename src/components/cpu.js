@@ -100,7 +100,6 @@ export class CPU{
         if(!IME) return;
 
         if((interrupt & 0x1) == 0x1){
-            console.log("VBlank");
             this.interrupt_VBlank();
         }
         else if((interrupt & 0x2) == 0x2){
@@ -161,7 +160,8 @@ export class CPU{
             + " subflag: " + this.registers.subtraction
             + " IME: " + IME
             + " interrupt_enable: " + this.bus.read(masterInterruptPointer).toString(16)
-            + " interrupt_request: " + this.bus.read(IF_pointer).toString(16));
+            + " interrupt_request: " + this.bus.read(IF_pointer).toString(16)
+            + " mbc rom bank: " + this.bus.MBC.romBankNumber);
         }
     }
 

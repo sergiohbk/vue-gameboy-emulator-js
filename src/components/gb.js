@@ -57,7 +57,7 @@ export class GAMEBOY {
     }
   }
   async loadRom() {
-    const rom = await fetch("./roms/asteroids.gb");
+    const rom = await fetch("./roms/sirenita.gb");
     const buffer = await rom.arrayBuffer();
     const rombuffer = new Uint8Array(buffer);
     this.cpu.rom = rombuffer;
@@ -65,6 +65,7 @@ export class GAMEBOY {
     for (let i = 0x0000; i < 0x8000; i++) {
       this.cpu.bus.memory[i] = rombuffer[i];
     }
+    this.cpu.bus.MBC.init();
     await this.cpu.sleep(1000);
   }
 }

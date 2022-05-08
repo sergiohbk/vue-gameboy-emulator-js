@@ -13,6 +13,10 @@ export class Cartridge{
         this.rom_header_pointer = 0x100;
         this.ram_size = this.getRamSize();
 
+        console.log("cardtype name", this.cartType.name);
+        console.log("ramsize", this.ram_size);
+        console.log("romsize", this.rom_size);
+
         //usos de la rom
         this.MBC1 = false;
         this.MBC2 = false;
