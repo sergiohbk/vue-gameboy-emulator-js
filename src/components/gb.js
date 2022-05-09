@@ -57,14 +57,12 @@ export class GAMEBOY {
     }
   }
   async loadRom() {
-    const rom = await fetch("./roms/sirenita.gb");
+    const rom = await fetch("./roms/mario_land.gb");
     const buffer = await rom.arrayBuffer();
     const rombuffer = new Uint8Array(buffer);
     this.cpu.rom = rombuffer;
     this.cpu.bus.setRom(rombuffer);
-    for (let i = 0x0000; i < 0x8000; i++) {
-      this.cpu.bus.memory[i] = rombuffer[i];
-    }
+
     this.cpu.bus.MBC.init();
     await this.cpu.sleep(1000);
   }

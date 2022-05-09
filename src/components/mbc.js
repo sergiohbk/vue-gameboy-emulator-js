@@ -1,22 +1,22 @@
 export class MBC {
     constructor(rom, bus){
-        this.rom = rom;
+        this.cartridge = rom;
         this.bus = bus;
         this.ramBankNumber = 0;
         this.externalRam = false;
         this.romBankNumber = 1;
         this.mode = 0;
-        this.ramBanks = new Array(this.rom.ram_size);
         this.zeroBankNumber = 0;
-        this.highRambank = 0;
     }
 
     init(){
-        if(!this.rom.MBC1) return;
+        if(!this.cartridge.MBC1) return;
 
-        if(!this.rom.externalRam) return;
+        if(!this.cartridge.externalRam) return;
 
-        for(let i = 0; i < this.rom.ram_size; i++){
+        this.ramBanks = new Array(this.rom.ram_size);
+
+        for(let i = 0; i < this.cartridge.ram_size; i++){
             this.ramBanks[i] = new Uint8Array(0x2000);
             this.ramBanks[i].fill(0);
         } 
@@ -25,20 +25,20 @@ export class MBC {
     }
 
     save(){
-        if(this.rom.battery)
+        if(this.cartridge.battery)
         {
             //guardar memoria en un archivo al cerrar en A000 - BFFF
         }
     }
     load(){
-        if(this.rom.battery)
+        if(this.cartridge.battery)
         {
             //cargar memoria de un archivo al abrir en A000 - BFFF
         }
     }
     enablingRam(value){
-        if(!this.rom.MBC1) return;
-        if(!this.rom.externalRam) return;
+        if(!this.cartridge.MBC1) return;
+        if(!this.cartridge.externalRam) return;
         
         console.log("MBC1 enabling ram");
         value = value & 0x0F;
@@ -50,7 +50,7 @@ export class MBC {
     }
 
     setTheRomBankNumber(value){
-        if(!this.rom.MBC1) return;
+        if(!this.cartridge.MBC1) return;
         
         if(value == 0)
         {
@@ -63,52 +63,38 @@ export class MBC {
         value = value & mask;
 
         this.romBankNumber = value;
-        //console.log("MBC1 rom bank number: " + this.romBankNumber);
-        this.setRom16kb();
-    }
 
-    setRom16kb(){
-        for(let i = 0x4000; i < 0x8000; i++){
-            this.bus.memory[i] = this.rom.rom[this.romBankNumber * 0x4000 + (i - 0x4000)];
-        }
-    }
-    setRam8kb(){
-        for(let i = 0xA000; i < 0xC000; i++){
-            this.bus.memory[i] = this.ramBanks[this.ramBankNumber][i - 0xA000];
+        if(this.mode == 1){
+            if(this.cartridge.rom_size == 64){
+                value = (value & 0x01) << 5;
+                this.romBankNumber |= value;
+            }
+
+            if(this.cartridge.rom_size == 128){
+                value = value << 5;
+                this.romBankNumber |= value;
+            }
         }
     }
 
     setZeroBankNumber(bank){
-        if(this.rom.rom_size < 64) return;
+        if(this.cartridge.rom_size < 64) return;
 
-        if(this.rom.rom_size == 64){
+        if(this.cartridge.rom_size == 64){
             bank = (bank & 0x01) << 5;
 
             this.zeroBankNumber = bank;
         }
 
-        if(this.rom.rom_size == 128){
+        if(this.cartridge.rom_size == 128){
             bank = bank << 5;
 
             this.zeroBankNumber = bank;
         }
     }
-
-    setHighRamBank(value){
-        if(this.rom.rom_size < 64) return;
-
-        if(this.rom.rom_size == 64){
-            value = (value & 0x01) << 5;
-            this.highRambank = value;
-        }
-        if(this.rom.rom_size == 128){
-            value = value << 5;
-            this.highRambank = value;
-        }
-    }
     getMasktoRomBankNumber(){
         let mask = 0x00;
-        switch(this.rom.rom_size){
+        switch(this.cartridge.rom_size){
             case 2:
                 mask = 0x01;
                 break;
@@ -135,33 +121,61 @@ export class MBC {
     }
 
     setTheRamBankNumber(value){
-        if(!this.rom.MBC1) return;
+        if(!this.cartridge.MBC1) return;
+        if(!this.cartridge.externalRam) return;
 
         value = value & 0x03;
 
-        this.saveRam(this.ramBankNumber);
-
         this.ramBankNumber = value;
 
-        console.log("MBC1 ram bank number: " + this.ramBankNumber);
-        this.setRam8kb();
-    }
-
-    saveRam(ramBank){
-        if(!this.rom.externalRam) return;
-
-        for(let i = 0xA000; i < 0xC000; i++){
-            this.ramBanks[ramBank][i - 0xA000] = this.bus.memory[i];
-        }
+        this.setZeroBankNumber(this.ramBankNumber);
     }
 
     setModeFlag(value){
-        if(!this.rom.MBC1) return;
+        if(!this.cartridge.MBC1) return;
 
         value = value & 0x01;
 
-        if(value == 1) throw new Error("MBC1 mode 1 not supported");
-
         this.mode = value;
+    }
+
+    ramWrite(address, value){
+        if(!this.cartridge.MBC1) return;
+        if(!this.cartridge.externalRam) return;
+
+        if(this.mode == 1){
+            if(this.cartridge.ram_size == 4){
+                this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
+            }else{
+                this.ramBanks[0][address - 0xA000] = value;
+            }
+        }else{
+            this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
+        }
+    }
+
+    readRomBankZero(address){
+        if(this.mode == 1){
+            this.setZeroBankNumber(this.ramBankNumber);
+
+            return this.cartridge.rom[this.zeroBankNumber * 0x4000 + address];
+        }else{
+            return this.cartridge.rom[address];
+        }
+    }
+
+    ramRead(address){
+        if(!this.cartridge.MBC1) return;
+        if(!this.cartridge.externalRam) return;
+
+        if(this.mode == 1){
+            if(this.cartridge.ram_size == 4){
+                return this.ramBanks[this.ramBankNumber][address - 0xA000];
+            }else{
+                return this.ramBanks[0][address - 0xA000];
+            }
+        }else{
+            return this.ramBanks[this.ramBankNumber][address - 0xA000];
+        }
     }
 }

@@ -118,7 +118,7 @@ export class CPU{
 
     cpu_execute(){
         //guarda el opcode en current opcode
-        this.current_opcode = this.bus.memory[this.registers.pc];
+        this.current_opcode = this.bus.read(this.registers.pc);
         let pc = this.registers.pc;
         if(this.instructions[this.current_opcode] !== undefined){
 

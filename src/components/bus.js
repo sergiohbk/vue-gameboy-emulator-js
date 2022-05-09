@@ -24,7 +24,7 @@ export class Bus{
     // 0xFF80 - 0xFFFE : Zero Page
     constructor(){
         this.memory = new Uint8Array(MEMORY_SIZE);
-        this.bootrom = new Uint8Array(0x100);
+        this.bootromActive = false;
         this.dma = new DMA(this);
         this.controller = new Controller(this);
         for(let i = 0x100; i < 0x8000; i++){
@@ -35,8 +35,9 @@ export class Bus{
     setRom(rom){
         this.cartridge = new Cartridge(rom);
         this.MBC = new MBC(this.cartridge, this);
-        console.log(this.MBC);
+        console.log(this.cartridge);
     }
+
     write(address, value){
         if(address == DIV_pointer || address == IF_pointer){
             this.memory[address] = 0;
@@ -53,26 +54,28 @@ export class Bus{
             this.memory[address] = value;
             return;
         }
-        if(address < 0x1FFF){
+        if(address <= 0x1FFF){
             this.MBC.enablingRam(value);
             return;
         }
-        if(address > 0x2000 && address < 0x3FFF){
+        if(address >= 0x2000 && address < 0x3FFF){
             this.MBC.setTheRomBankNumber(value);
             return;
         }
-        if(address > 0x4000 && address < 0x5FFF){
+        if(address >= 0x4000 && address < 0x5FFF){
             this.MBC.setTheRamBankNumber(value);
             return;
         }
-        if(address > 0x6000 && address < 0x7FFF){
+        if(address >= 0x6000 && address < 0x7FFF){
             this.MBC.setModeFlag(value);
             return;
         }
-        if(address > 0xA000 && address < 0xBFFF){
+        if(address >= 0xA000 && address < 0xBFFF){
             //escribiendo en la ram externa
             if(!this.MBC.externalRam)
                 return;
+
+            this.MBC.ramWrite(address, value);
         }
         if(address < 0x10000 && address >= 0x8000){
             this.memory[address] = value;
@@ -83,13 +86,36 @@ export class Bus{
         }
     }
     read(address){
+        if(address < 0x100){
+            if(this.bootromActive)
+                return this.memory[address];
+        }
+
+        if(address < 0x4000){
+            if(this.cartridge.MBC1)
+                return this.MBC.readRomBankZero(address);
+
+            return this.cartridge.rom[address];
+        }
+
+        if(address > 0x3FFF && address < 0x8000){
+            if(this.cartridge.MBC1)
+                return this.cartridge.rom[(address - 0x4000) + this.MBC.romBankNumber * 0x4000];
+            
+            return this.cartridge.rom[address];
+        }
+
         if(address == 0xff00){
             this.memory[address] = this.controller.read();
             return this.memory[address];
         }
-        if(address > 0xA000 && address < 0xC000){
+
+        if(address >= 0xA000 && address < 0xC000){
             if(!this.MBC.externalRam) return 0xFF;
+
+            return this.MBC.ramRead(address);
         }
+        
         if(address < 0x10000){
             return this.memory[address];
         }else{
