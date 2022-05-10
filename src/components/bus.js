@@ -59,15 +59,40 @@ export class Bus{
             return;
         }
         if(address >= 0x2000 && address < 0x3FFF){
-            this.MBC.setTheRomBankNumber(value);
+            if(this.cartridge.MBC1){
+                this.MBC.setTheRomBankNumber(value);
+                return;
+            }
+            if(this.cartridge.MBC5){
+                if(address >= 2000 && address < 0x3000){
+                    this.MBC.setTheRomBankNumberMBC5(value, false);
+                    return;
+                }
+                if(address >= 0x3000 && address < 0x4000){
+                    this.MBC.setTheRomBankNumberMBC5(value, true);
+                    return;
+                }
+            }
+
             return;
         }
         if(address >= 0x4000 && address < 0x5FFF){
-            this.MBC.setTheRamBankNumber(value);
+            if(this.cartridge.MBC1){
+                this.MBC.setTheRamBankNumber(value);
+                return;
+            }
+            if(this.cartridge.MBC5){
+                this.MBC.setTheRamBankNumberMBC5(value);
+                return;
+            }
+
             return;
         }
         if(address >= 0x6000 && address < 0x7FFF){
-            this.MBC.setModeFlag(value);
+            if(this.cartridge.MBC1){
+                this.MBC.setModeFlag(value);
+                return;
+            }
             return;
         }
         if(address >= 0xA000 && address < 0xBFFF){
@@ -99,7 +124,7 @@ export class Bus{
         }
 
         if(address > 0x3FFF && address < 0x8000){
-            if(this.cartridge.MBC1)
+            if(this.cartridge.MBC1 || this.cartridge.MBC5)
                 return this.cartridge.rom[(address - 0x4000) + this.MBC.romBankNumber * 0x4000];
             
             return this.cartridge.rom[address];

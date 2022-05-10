@@ -57,7 +57,7 @@ export class GAMEBOY {
     }
   }
   async loadRom() {
-    const rom = await fetch("./roms/mario_land.gb");
+    const rom = await fetch("./roms/monete.gb");
     const buffer = await rom.arrayBuffer();
     const rombuffer = new Uint8Array(buffer);
     this.cpu.rom = rombuffer;
