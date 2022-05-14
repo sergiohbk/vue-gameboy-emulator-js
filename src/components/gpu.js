@@ -91,6 +91,7 @@ export class GPU {
     this.createFrameBuffer();
     this.debugTilesFrameBuffer = [];
     this.resetDebugPixels();
+    this.imageData = this.ctx.createImageData(SCREEN_WIDTH, SCREEN_HEIGHT);
   }
   createFrameBuffer() {
     for (let y = 0; y < SCREEN_HEIGHT; y++) {
@@ -392,16 +393,13 @@ export class GPU {
           );
           const palette = palleteColor[paletteIndex];
           const screenX = sprite.x + xTile;
-          const isBehind =
-            sprite.bgwnPriority === 0x1 && scanline[screenX] != [255, 255, 255];
-          //const priority = spritePriority[sprite.x] < i;
+          const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] != 255;
 
           if (!isBehind) {
             if (paletteIndex === 0) {
               spriteline.push(-1);
             } else {
               spriteline.push(palette);
-              //spritePriority[screenX] = i;
             }
           } else {
             spriteline.push(-1);
@@ -413,6 +411,7 @@ export class GPU {
       this.putPixelsInScanLine(scanline, spriteline, sprite.x);
       spriteline = [];
     }
+    spritesRendered = 0;
   }
 
   getNumberOfSpritesInOAM() {
@@ -487,9 +486,9 @@ export class GPU {
     const ly = this.bus.read(0xff44);
     //get the imageData from the canvas ctx
 
-    var imageData = this.ctx.getImageData(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    //this.imageData = this.ctx.getImageData(0, 0, SCREEN_WIDTH,ly+1);
     //add the scanline to the imageData
-    if (scanline == undefined) return;
+    if(scanline == null || scanline == undefined) return;
 
     for (let i = 0; i < SCREEN_WIDTH; i++) {
       let pixel = scanline[i];
@@ -498,20 +497,35 @@ export class GPU {
       if (pixel[0] == -1) continue;
 
       let index = i * 4 + ly * SCREEN_WIDTH * 4;
-      imageData.data[index] = pixel[0];
-      imageData.data[index + 1] = pixel[1];
-      imageData.data[index + 2] = pixel[2];
-      imageData.data[index + 3] = 255;
+      this.imageData.data[index] = pixel[0];
+      this.imageData.data[index + 1] = pixel[1];
+      this.imageData.data[index + 2] = pixel[2];
+      this.imageData.data[index + 3] = 255;
     }
     //put the imageData back to the canvas
-    this.ctx.putImageData(imageData, 0, 0);
+    this.ctx.putImageData(this.imageData, 0, 0);
+  }
 
-    /*for(let x = 0; x < SCREEN_WIDTH; x++){
-            if(scanline != undefined){
-                this.ctx.fillStyle = scanline[x];
-                this.ctx.fillRect(x * SCREEN_MULTIPLY, ly * SCREEN_MULTIPLY, SCREEN_MULTIPLY, SCREEN_MULTIPLY);
-            }
-        }*/
+  drawtoScreenTest(scanline){
+    const ly = this.bus.read(0xff44);
+
+    if(scanline == null || scanline == undefined) return;
+
+    for (let x = 0; x < SCREEN_WIDTH; x++) {
+      if (scanline[x] == -1 || scanline[x] == undefined) continue;
+      this.ctx.fillStyle = `rgb(${scanline[x][0]},${scanline[x][1]},${scanline[x][2]})`;
+      this.ctx.fillRect(x, ly, 1, 1);
+    }
+  }
+
+  getcolor(color){
+    switch(color){
+      case color[0] == 255: return "#FFFFFF";
+      case color[0] == 192: return "#C0C0C0";
+      case color[0] == 128: return "#808080";
+      case color[0] == 0: return "#000000";
+      default: return -1;
+    }
   }
 
   debugTile(address) {

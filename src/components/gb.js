@@ -18,32 +18,44 @@ export class GAMEBOY {
     this.cpu = new CPU();
     this.gpu = new GPU(this.cpu.bus);
     this.lastTime = 0;
-    this.fps = 0;
+    this.fps = 60;
+    this.then = 0;
+    this.now = 0;
+    this.interval = 0;
+    this.elapsed = 0;
     this.cycles = 0;
     this.running = true;
+    this.frameFinishedCallback = null;
   }
 
   run() {
+    this.interval = 1000 / this.fps;
+    this.then = window.performance.now();
     requestAnimationFrame((time) => this.runFrame(time));
   }
 
-  runFrame(currentTime) {
+  runFrame(time) { 
     if (!this.running) return;
-    const deltaTime = currentTime - this.lastTime;
+    this.now = time;
+    this.elapsed = this.now - this.then;
 
-    if (deltaTime >= 1000 / 60 || !this.lastTime) {
-      this.fps = 1000 / deltaTime;
-      this.lastTime = currentTime - (deltaTime % (1000 / 60));
-
+    if (this.elapsed > this.interval){
+      this.then = this.now - (this.elapsed % this.interval);
+      
       while (this.cycles < cyclesPerFrame) {
         let cyclesFrame = this.cpu.tick();
         this.gpu.tick(cyclesFrame);
         this.cycles += cyclesFrame;
       }
+
       this.cycles %= cyclesPerFrame;
     }
-
+    
     requestAnimationFrame((time) => this.runFrame(time));
+  }
+
+  onFrameFinished(callback) {
+    this.frameFinishedCallback = callback;
   }
 
   async loadBootRom() {
@@ -57,7 +69,7 @@ export class GAMEBOY {
     }
   }
   async loadRom() {
-    const rom = await fetch("./roms/monete.gb");
+    const rom = await fetch("./roms/POKEMON_BLUE.GB");
     const buffer = await rom.arrayBuffer();
     const rombuffer = new Uint8Array(buffer);
     this.cpu.rom = rombuffer;
