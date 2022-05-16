@@ -48,7 +48,7 @@ export class Bus{
             return;
         }
         if(address == this.dma.DMA_pointer){
-            this.dma.active = true;
+            this.dma.transfer();
         }
         if(address == INTERRUPT_ENABLE_REGISTER){
             this.memory[address] = value;

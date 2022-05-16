@@ -9,7 +9,7 @@
         <button @click="hola1">ejecutar</button>
         <button @click="hola2">parar</button>
         <button @click="hola3">breakpoint</button>
-        <button @click="hola4">memory</button>
+        <button @click="hola4">guardar partida</button>
         <input type="text" v-model="hex">
         <span style="color:white">{{hex}}</span>
         <button @click="hola5">seccion memoria</button>
@@ -159,7 +159,7 @@ export default {
             + " dmaActive " + this.gameboy.cpu.bus.dma.active);
     },
     hola4(){
-      console.log(this.gameboy.cpu.bus.memory)
+      this.gameboy.cpu.bus.MBC.save();
     },
     hola5(){
       let hexi = parseInt(this.hex, 16)
@@ -207,6 +207,7 @@ export default {
 canvas{
   margin: 1rem;
   z-index: 1;
+  image-rendering: pixelated;
 }
 .content-table {
   border-collapse: collapse;

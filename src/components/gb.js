@@ -48,9 +48,10 @@ export class GAMEBOY {
         this.cycles += cyclesFrame;
       }
 
+      this.gpu.renderTheFrame();
+
       this.cycles %= cyclesPerFrame;
     }
-    
     requestAnimationFrame((time) => this.runFrame(time));
   }
 
@@ -69,7 +70,7 @@ export class GAMEBOY {
     }
   }
   async loadRom() {
-    const rom = await fetch("./roms/POKEMON_BLUE.GB");
+    const rom = await fetch("./roms/zelda.gb");
     const buffer = await rom.arrayBuffer();
     const rombuffer = new Uint8Array(buffer);
     this.cpu.rom = rombuffer;

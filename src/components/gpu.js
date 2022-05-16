@@ -7,7 +7,6 @@ import {
   cyclesScanlineOAM,
   cyclesScanlineVRAM,
   MaxOAMsprites,
-  MaxSpritesInLine,
   SCREEN_DEBUG_TILES_HEIGHT,
   SCREEN_DEBUG_TILES_WIDTH,
   SCREEN_HEIGHT,
@@ -130,15 +129,21 @@ export class GPU {
         break;
       case "VBlank":
         if (this.cyclesCounter >= cyclesScanline) {
+          if(this.bus.memory[0xff44] === 153){
+            //comportamiento extraño de la scanline 153, convierte a 0 ly pero sin salir de vblank
+            //hacer en el futuro
+          }
+
           let lycompare = this.lyCompare();
-          
+        
           let lycInterrupt = (this.bus.read(0xff41) & 0x40) == 0x40;
           if (lycompare && lycInterrupt) {
             this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
           }
+          
           this.bus.memory[0xff44]++;
           this.cyclesCounter %= cyclesScanline;
-          let ly = this.bus.read(0xff44);
+          let ly = this.bus.memory[0xff44];
 
           if (ly === completeFrameScanlines) {
             this.bus.memory[0xff44] = 0;
@@ -166,7 +171,7 @@ export class GPU {
           if (lycompare && lycInterrupt) {
             this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
           }
-          this.bus.dma.transfer();
+          //this.bus.dma.transfer();
           this.setLCDCmode("HBlank");
         }
         break;
@@ -352,49 +357,52 @@ export class GPU {
     const LCDC = this.bus.read(0xff40);
     const spriteHeight = (LCDC & 0x04) == 0x04 ? 16 : 8;
     let spriteline = [];
-    //let spritePriority = new Array(SCREEN_WIDTH).fill(50);
-    let spritesRendered = 0;
     const sprites = this.getNumberOfSpritesInOAM();
     const ly = this.bus.read(0xff44);
+    let MaxSpritesInLine = 0;
+    let listSprites = [];
 
     for (let i = 0; i < sprites.length; i++) {
-      let sprite = sprites[i];
-      if (spritesRendered + 1 > MaxSpritesInLine) return;
-      if (
-        ly >= sprite.y &&
-        sprite.y + spriteHeight > ly &&
-        sprite.x >= -7 &&
-        sprite.x <= SCREEN_WIDTH
-      ) {
-        let palleteColor = this.getColourSpritePalette(sprite.palette);
-        let scanlineIntersectsYat = ly - sprite.y;
+      if(MaxSpritesInLine == 10) break;
+      if (ly >= sprites[i].y && sprites[i].y + spriteHeight > ly && sprites[i].x >= -7 && sprites[i].x <= SCREEN_WIDTH){
+        listSprites.push(sprites[i]);
+        MaxSpritesInLine++;
+      }
+    }
+
+    if(listSprites.length == 0) return;
+
+    listSprites.sort((a, b) => { return a.x - b.x }).reverse();
+
+    for (let i = 0; i < listSprites.length; i++) {
+        const sprite = listSprites[i];
+        const palleteColor = this.getColourSpritePalette(sprite.palette);
         const lastLineOfSprite = spriteHeight - 1;
+
+        let scanlineIntersectsYat = ly - sprite.y;
 
         if (sprite.Yflip === 0x1) {
           scanlineIntersectsYat = lastLineOfSprite - scanlineIntersectsYat;
         }
 
-        const tileIndex =
-          spriteHeight === 16 ? sprite.tileIndex & 0xfe : sprite.tileIndex;
+        const tileIndex = spriteHeight === 16 ? sprite.tileIndex & 0xFE : sprite.tileIndex;
         const bytePositionInTile = scanlineIntersectsYat * 2;
         const tileCharBytePosition = tileIndex * 16;
-        const currentTileLineBytePosition =
-          0x8000 + tileCharBytePosition + bytePositionInTile;
+        const currentTileLineBytePosition = 0x8000 + tileCharBytePosition + bytePositionInTile;
 
         const lowerByte = this.bus.read(currentTileLineBytePosition);
         const upperByte = this.bus.read(currentTileLineBytePosition + 1);
 
         for (let xTile = 0; xTile < 8; xTile++) {
-          const paletteIndex = this.getPixelInTileLine(
-            xTile,
-            lowerByte,
-            upperByte,
-            sprite.Xflip === 0x1
-          );
+          const paletteIndex = this.getPixelInTileLine(xTile, lowerByte, upperByte, sprite.Xflip === 0x1);
           const palette = palleteColor[paletteIndex];
           const screenX = sprite.x + xTile;
-          const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] != 255;
 
+          if(screenX < 0)
+            continue;
+
+          const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] != 255;
+          
           if (!isBehind) {
             if (paletteIndex === 0) {
               spriteline.push(-1);
@@ -404,14 +412,12 @@ export class GPU {
           } else {
             spriteline.push(-1);
           }
-        }
-        this.lastSprite = sprite;
-        spritesRendered += 1;
       }
-      this.putPixelsInScanLine(scanline, spriteline, sprite.x);
+
+      const xPos = (sprite.x < 0) ? 0 : sprite.x;
+      this.putPixelsInScanLine(scanline, spriteline, xPos);
       spriteline = [];
     }
-    spritesRendered = 0;
   }
 
   getNumberOfSpritesInOAM() {
@@ -502,20 +508,10 @@ export class GPU {
       this.imageData.data[index + 2] = pixel[2];
       this.imageData.data[index + 3] = 255;
     }
-    //put the imageData back to the canvas
-    this.ctx.putImageData(this.imageData, 0, 0);
   }
 
-  drawtoScreenTest(scanline){
-    const ly = this.bus.read(0xff44);
-
-    if(scanline == null || scanline == undefined) return;
-
-    for (let x = 0; x < SCREEN_WIDTH; x++) {
-      if (scanline[x] == -1 || scanline[x] == undefined) continue;
-      this.ctx.fillStyle = `rgb(${scanline[x][0]},${scanline[x][1]},${scanline[x][2]})`;
-      this.ctx.fillRect(x, ly, 1, 1);
-    }
+  renderTheFrame(){
+    this.ctx.putImageData(this.imageData, 0, 0);
   }
 
   getcolor(color){

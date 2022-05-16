@@ -21,20 +21,44 @@ export class MBC {
             this.ramBanks[i] = new Uint8Array(0x2000);
             this.ramBanks[i].fill(0);
         }
+
+        this.load();
     }
 
-    save(){
+    async save(){
         if(this.cartridge.battery)
         {
-            //guardar memoria en un archivo al cerrar en A000 - BFFF
+            //save the ram uint8array to a file
+            //put all rombanks in 1 array
+            const save = new Uint8Array(this.ramBanks.length * 0x2000);
+            for(let i = 0; i < this.ramBanks.length; i++){
+                save.set(this.ramBanks[i], i * 0x2000);
+            }
+
+            const blob = new Blob([save], {type: "application/octet-stream"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "POKEMON_BLUE.sav");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     }
-    load(){
+    async load(){
         if(this.cartridge.battery)
         {
-            //cargar memoria de un archivo al abrir en A000 - BFFF
+            const save = await fetch("./roms/POKEMON_BLUE.sav");
+            //comprobar si el save tiene datos
+            const buffer = await save.arrayBuffer();
+            const savebuffer = new Uint8Array(buffer);
+
+            for(let i = 0; i < this.ramBanks.length; i++){
+                this.ramBanks[i] = savebuffer.slice(i * 0x2000, (i + 1) * 0x2000);
+            }
         }
     }
+
     enablingRam(value){
         
         console.log("MBC1 or MBC5 enabling ram");

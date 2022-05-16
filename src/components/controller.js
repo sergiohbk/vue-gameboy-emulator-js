@@ -1,4 +1,3 @@
-import { startSavingInstructions } from "./extras/debugger";
 
 export class Controller{
     
@@ -49,7 +48,6 @@ export class Controller{
             this.bPressed = isPressed;
         if(keycode == this.start){
             this.startPressed = isPressed;
-            startSavingInstructions(isPressed);
         }
         if(keycode == this.select) 
             this.selectPressed = isPressed;
@@ -61,10 +59,6 @@ export class Controller{
             this.leftPressed = isPressed;
         if(keycode == this.right) 
             this.rightPressed = isPressed;
-
-        
-        //hacer log de todos los botones presionados
-        console.log("a " + this.aPressed + " b " + this.bPressed + " start " + this.startPressed + " select " + this.selectPressed + " down " + this.downPressed + " up " + this.upPressed + " left " + this.leftPressed + " right " + this.rightPressed);
     }
     write(value){
         this.button = (value & 0x10) == 0x10;

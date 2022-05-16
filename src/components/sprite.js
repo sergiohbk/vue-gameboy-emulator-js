@@ -7,10 +7,8 @@ export class Sprite{
     getData(bus){
         this.y = bus.read(this.address);
         this.y -= 16;
-        this.y = this.y & 0xFF;
         this.x = bus.read(this.address + 1);
         this.x -= 8;
-        this.x = this.x & 0xFF;
         this.tileIndex = bus.read(this.address + 2);
         this.attributes = bus.read(this.address + 3);
         this.Xflip = (this.attributes & 0x20) >> 5;
@@ -21,7 +19,7 @@ export class Sprite{
 
     isThisSpriteExists(){
         //tecnicamente esta idea debe funcionar, ya que nunca estaria en pantalla en caso de si haber sprite
-        if(this.y == 0xF0 && this.x == 0xF8 && this.tileIndex == 0 && this.attributes == 0){
+        if(this.y == -8 && this.x == -16 && this.tileIndex == 0 && this.attributes == 0){
             return false;
         }else{
             return true;
